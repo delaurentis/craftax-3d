@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Craftax 3D Folders</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1d1a18;--mut:#6b625b;--line:#e4ded8;--card:#f3efea;--hi:#fff3c4;--warn:#c9806f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151312;--fg:#ece7e1;--mut:#a39b92;--line:#2c2826;--card:#1d1a18;--hi:#3a3218;--warn:#d08a78}}
+:root[data-theme="dark"]{--bg:#151312;--fg:#ece7e1;--mut:#a39b92;--line:#2c2826;--card:#1d1a18;--hi:#3a3218;--warn:#d08a78}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+nav{font-size:14px;margin-bottom:14px;color:var(--mut)}nav a{color:inherit}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:19px;margin:34px 0 8px;border-top:1px solid var(--line);padding-top:18px}
+.lead{color:var(--mut);margin-top:0;max-width:860px}
+code,pre{font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}code{overflow-wrap:anywhere}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0}
+pre.tree{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0}
+.tree .d{font-weight:700}.tree .c{color:var(--mut)}.tree .h{background:var(--hi);border-radius:3px;padding:0 2px}.tree .w{color:var(--warn)}
+table{border-collapse:collapse;margin:8px 0;font-size:14px;width:100%}td,th{border-bottom:1px solid var(--line);padding:5px 10px 5px 0;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:500}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.mut{color:var(--mut)}.wrap{overflow-x:auto}
+</style>
+</head>
+<body><main>
+
+<nav>Craftax 3D docs: <a href="components.html">Components</a> · <strong>Folders</strong> · <a href="themes.md">Themes and scene packs</a> · <a href="looks.md">Writing a look</a></nav>
+
+<h1>Craftax 3D: folders and files</h1>
+<p class="lead">The repository on disk: every folder and each source file with what it owns, taken from the comment at its top. Left out: <code>node_modules/</code>, <code>dist/</code>, <code>.git/</code> and editor files. How the parts connect is on <a href="components.html">components.html</a>.</p>
+
+<div class="card"><strong>The 500-line rule.</strong> Every source file stays at or under 500 lines (<code>CONTRIBUTING.md</code>). <code>npm run sizes</code> (<code>tools/check-sizes.ts</code>) walks <code>src/</code>, <code>js/</code>, <code>plugins/</code>, <code>tools/</code>, the two pages and the three config files, lists any file over, and fails if there is one; <code>npm run check</code> runs it after the type check. <span class="mut"><code>vendor/</code>, <code>engine/</code> and <code>public/</code> are not checked: they are third-party or built.</span></div>
+
+<h2 id="tree">1. The tree</h2>
+<pre class="tree"><span class="d">craftax-3d/</span>
+├── README.md                         <span class="c">what it is, run it, watch an agent, controls, how it's built, credits</span>
+├── CONTRIBUTING.md                   <span class="c">setup, house rules (strict TS, 500 lines, one job a file), TypeScript, phone testing</span>
+├── LICENSE                           <span class="c">MIT</span>
+├── NOTICE.md                         <span class="c">third parties: Craftax art, craftax-wasm/PufferLib, three.js, mp4-muxer, ONNX Runtime Web, CC0 sounds</span>
+├── package.json                      <span class="c">dev · build · preview · check · sizes; deps three 0.186.0, onnxruntime-web 1.30.0</span>
+├── package-lock.json
+├── tsconfig.json                     <span class="c">strict, bundler resolution; "craftax-3d/*" path for plugins</span>
+├── vite.config.ts                    <span class="c">builds index.html + replay.html into dist/; CRAFTAX_CONFIG, CRAFTAX_OUT, CRAFTAX_TUNNEL; /replay/ redirect</span>
+├── craftax.config.ts                 <span class="c">this copy's home site and its plugins: listed is on, left out isn't built</span>
+├── crystal.config.ts                 <span class="c">a test config: craftax.config.ts plus the crystal plugin from ../craftax-crystal</span>
+├── index.html                        <span class="c">the game page: start menu, screens, HUD markup, the film clock for replay videos, the Shellcaster credit</span>
+├── replay.html                       <span class="c">the replay page: stage, side panel, timeline, share windows</span>
+├── .gitignore                        <span class="c">node_modules/, dist/, public/agent/, engine/, .DS_Store</span>
+│
+├── <span class="d">doc/</span>
+│   ├── <span class="h">components.html</span>             <span class="c">the component map</span>
+│   ├── <span class="h">folders.html</span>                <span class="c">this page</span>
+│   ├── themes.md                     <span class="c">themes and scene packs: views vs looks vs themes, writing a theme, set pieces</span>
+│   └── looks.md                      <span class="c">writing a look: its button, its renderers for each view, Noir and Pixel as examples</span>
+│
+├── <span class="d">engine/</span>                         <span class="c">git-ignored: the craftax-wasm build, copied in by tools/runtime-files.ts</span>
+│   ├── <span class="d">build/</span>craftax.mjs              <span class="c">the engine with its wasm inlined</span>
+│   └── <span class="d">js/</span>craftax.mjs  meta.json      <span class="c">the JS wrapper (loadCraftax, FLAGS) and the engine's meta</span>
+│
+├── <span class="d">examples/</span>
+│   └── <span class="d">plugins/</span>
+│       └── autumn.js                 <span class="c">a one-file theme a player adds by hand (Settings → World → Add plugin…)</span>
+│
+├── <span class="d">js/</span>                             <span class="c">the page entry points and the parts not yet moved into src/</span>
+│   ├── main.ts                       <span class="c">the game page's entry: imports every part in order, then boots</span>
+│   ├── replay-page.ts                <span class="c">the replay page's entry: imports src/replay/page/</span>
+│   ├── local.ts                      <span class="c">single player in the tab: the wasm engine answers /api/…, records ops, places set pieces, runs the bot</span>
+│   ├── net.ts                        <span class="c">which server, who you are, which world; server and world lists, the bot panel</span>
+│   ├── agent.ts                      <span class="c">the bots: models.json, one worker each, loaded once picked; plugin bot sources after</span>
+│   ├── agent-worker.ts               <span class="c">one ONNX model in onnxruntime-web, off the main thread: obs + mask in, action out</span>
+│   ├── brain.ts                      <span class="c">the bot's brain in pixel art: 43 actions as neurons lit by probability</span>
+│   ├── research.ts                   <span class="c">the Research screen: the papers, and the agents you can watch</span>
+│   ├── hud.ts                        <span class="c">status bars, hotbar, gear, info, achievement toasts, the E screen</span>
+│   ├── pixeltitle.ts                 <span class="c">pixel-art text for the start and death screens (5 × 7 block font)</span>
+│   ├── art2d.ts                      <span class="c">Craftax's own 2D view, ported from its renderer, for the Original art</span>
+│   ├── models.ts                     <span class="c">blocky creature, player and projectile models, walk and flap animation</span>
+│   ├── shading.ts                    <span class="c">makes the shader materials (source in src/render/shading/)</span>
+│   ├── clouds.ts                     <span class="c">blocky drifting clouds and their shadows</span>
+│   ├── fell.ts                       <span class="c">a chopped tree falling, dust bursts, dying creatures, heaps of bones</span>
+│   ├── fell-types.ts                 <span class="c">the shapes fell.ts keeps for each effect (types only)</span>
+│   ├── record.ts                     <span class="c">recordings: snapshot + ops + camera track, saved as .cxreplay; the player</span>
+│   ├── film.ts                       <span class="c">a replay as an MP4: every frame computed, H.264 + AAC</span>
+│   ├── telemetry.ts                  <span class="c">which events happened; where they go is the telemetry plugin's choice</span>
+│   ├── build.ts                      <span class="c">VITE_SHIPPED: a host's release build drops the debug switches</span>
+│   ├── world.ts                      <span class="c">re-exports src/world/ (keeps the old import path)</span>
+│   ├── sound.ts                      <span class="c">re-exports src/sound/</span>
+│   └── textures.ts                   <span class="c">re-exports src/resources/blocks/</span>
+│
+├── <span class="d">plugins/</span>                        <span class="c">the bundled example plugins, each using only "craftax-3d/plugin" (shared/: helpers they share)</span>
+│   ├── <span class="d">winter/</span>                     <span class="c">theme: snow on the overworld</span>
+│   │   ├── index.ts                  <span class="c">winter({ default }) → a plugin providing "theme"</span>
+│   │   ├── theme.ts                  <span class="c">the theme: what is snowed on, the sky, which parts below do what</span>
+│   │   ├── tiles.ts                  <span class="c">lying snow, shore and path under snow, colder water and leaves</span>
+│   │   ├── fir.ts                    <span class="c">fir crowns with snow on each layer, swaying</span>
+│   │   ├── drift.ts                  <span class="c">snow drifted round a few lone trees</span>
+│   │   ├── dust.ts                   <span class="c">a light dusting on ore tops and thin-snowed rock</span>
+│   │   ├── snow.ts                   <span class="c">falling snow (the theme's weather), 1,200 flakes round you</span>
+│   │   ├── reindeer.ts               <span class="c">cows as reindeer; one in ten with a glowing red nose</span>
+│   │   ├── zombie.ts                 <span class="c">zombies in torn flannel, now and then a beanie</span>
+│   │   └── sounds.ts                 <span class="c">the reindeer's snorts, grunts and hooves in snow</span>
+│   ├── <span class="d">ruins/</span>                      <span class="c">theme: rock and ore as ruined college stonework</span>
+│   │   ├── index.ts                  <span class="c">ruins({ default }) → a plugin providing "theme"</span>
+│   │   ├── theme.ts                  <span class="c">the theme: broken walls on a 6-tile grid, rubble, a grey sky, the wave</span>
+│   │   ├── tiles.ts                  <span class="c">honey building stone; the painters University shares</span>
+│   │   ├── wear.ts                   <span class="c">more weathered stone: cracks, moss, bleaching, smoke</span>
+│   │   └── ore.ts                    <span class="c">each ore its own piece of the old buildings</span>
+│   ├── <span class="d">tropical/</span>                   <span class="c">theme: palms, beaches, volcanic rock, pigs</span>
+│   │   ├── index.ts                  <span class="c">tropical({ default }) → a plugin providing "theme"</span>
+│   │   ├── theme.ts                  <span class="c">the theme: which hooks do what</span>
+│   │   ├── tiles.ts                  <span class="c">fronds, bark, beaches, red clay, volcanic rock; which faces wear them</span>
+│   │   ├── palm.ts                   <span class="c">eight palms: trunks, coconuts, three layers of fronds</span>
+│   │   ├── dress.ts                  <span class="c">grass skirts, Hawaiian shirts, your shorts, pigs</span>
+│   │   ├── sounds.ts                 <span class="c">the pigs' recorded grunts and squeals</span>
+│   │   └── <span class="d">sounds/</span>                 <span class="c">recorded pig grunts and squeals (CC0)</span>
+│   ├── <span class="d">university/</span>                 <span class="c">scene pack: set pieces</span>
+│   │   ├── index.ts                  <span class="c">university({ default }) → "setPieces"; ?scene=oxford, campus</span>
+│   │   ├── square.ts                 <span class="c">Radcliffe Square on an edge of the map</span>
+│   │   ├── campus.ts                 <span class="c">a college campus across the water</span>
+│   │   ├── model.ts                  <span class="c">the buildings as blocks, half blocks and extras</span>
+│   │   ├── draw.ts                   <span class="c">drawing a model turned to its side; the shared placement steps</span>
+│   │   └── tiles.ts                  <span class="c">stone, columns, domes, railing, the Camera's door (two stone sets)</span>
+│   ├── <span class="d">noir/</span>                       <span class="c">look: black and white film, with its own button</span>
+│   │   ├── index.ts                  <span class="c">noir({ grain }) → "look" and "lookView" (first person and overhead)</span>
+│   │   ├── noir.glsl.ts              <span class="c">the post pass: grays, hard contrast, a vignette, film grain</span>
+│   │   └── noir.css                  <span class="c">the HUD in grays</span>
+│   └── <span class="d">pixel/</span>                      <span class="c">look: pixel art, with its own button</span>
+│       ├── index.ts                  <span class="c">pixel({ size }) → "look" and "lookView": a render at 1/size scale (4)</span>
+│       └── pixel.glsl.ts             <span class="c">the post pass: the 16-color DB16 palette, Bayer dithering</span>
+│
+├── <span class="d">public/</span>                         <span class="c">served as is, beside the pages</span>
+│   ├── models.json                   <span class="c">the bot registry (the first is the default); weights load from Hugging Face</span>
+│   ├── servers.json                  <span class="c">the server list</span>
+│   ├── <span class="d">agent/ort/</span>                  <span class="c">git-ignored: onnxruntime-web (wasm + loader), copied from node_modules, 14 MB</span>
+│   ├── <span class="d">backdrops/</span>                  <span class="c">16 .webp start-screen backdrops (desktop and phone pairs), 1.5 MB</span>
+│   ├── <span class="d">craftax-art/</span>                <span class="c">Craftax 1.6.1's 16 × 16 tiles (MIT, its own LICENSE), 145 files, for the Original art</span>
+│   ├── <span class="d">fonts/</span>craftax-pixel.woff      <span class="c">the 5 × 7 pixel font as a web font</span>
+│   ├── <span class="d">recordings/</span>lost-underground.cxrec  <span class="c">a sample recording (gzipped JSON)</span>
+│   └── <span class="d">sounds/</span>                     <span class="c">73 CC0 .mp3 clips (creature voices, loops), each source in its README.md, 1.1 MB</span>
+│
+├── <span class="d">src/</span>
+│   ├── config.ts                     <span class="c">reads craftax.config.ts and registers its plugins</span>
+│   ├── page-url.ts                   <span class="c">files beside the page, found from this module's place (src/ in dev, assets/ in a build)</span>
+│   ├── env.d.ts                      <span class="c">vite client types; the craftax:config module</span>
+│   ├── <span class="d">core/</span>                       <span class="c">plugins, events, the game's state and loop</span>
+│   │   ├── plugins.ts                <span class="c">the plugin registry: services (telemetry, replayStore) and lists</span>
+│   │   ├── user-plugins.ts           <span class="c">plugins a player adds by address or file, saved per player</span>
+│   │   ├── events.ts                 <span class="c">a small typed event bus; a throwing listener never breaks the game</span>
+│   │   ├── game.ts                   <span class="c">the game's state: meta, state, HUD, views, creatures, shots, keys, the API</span>
+│   │   ├── apply.ts                  <span class="c">apply(s): a new state against the old, and everything that follows</span>
+│   │   ├── frame.ts                  <span class="c">the frame loop: the clock, the frame-rate meter, frame(now)</span>
+│   │   ├── shared.ts                 <span class="c">what every part shares: sound, DOM lookup, action ids, eye height</span>
+│   │   ├── types.ts                  <span class="c">the data shapes: engine state, world summary, bot reply, meta, engine API (types only)</span>
+│   │   └── mixin.ts                  <span class="c">a class split over several modules</span>
+│   ├── <span class="d">world/</span>                      <span class="c">the World class, mixed from its parts</span>
+│   │   ├── core.ts                   <span class="c">the World class: the map's state, what changed, placed stone</span>
+│   │   ├── build.ts                  <span class="c">the meshes, chunk by chunk; the crafting table's tools</span>
+│   │   ├── terrain.ts                <span class="c">portcullises, column heights, ground, path floors, leaf cells, voxels</span>
+│   │   ├── shapes.ts                 <span class="c">loose pieces, a block's texture, the flat view, the crosshair raycast</span>
+│   │   ├── light.ts                  <span class="c">torch and lava light, flicker, fountains</span>
+│   │   ├── geo.ts                    <span class="c">the geometry kit: faces, boxes, corner AO, the water grid</span>
+│   │   └── blocks.ts                 <span class="c">block and item ids, each block's look, realm variants, heights</span>
+│   ├── <span class="d">render/</span>
+│   │   ├── scene.ts                  <span class="c">the WebGL renderer, scene, camera, sky, clouds</span>
+│   │   ├── arm.ts                    <span class="c">the world mesh, effect objects, the first-person arm and tool</span>
+│   │   ├── entities.ts               <span class="c">creatures and projectiles: health bars, syncing, kills</span>
+│   │   ├── player-pose.ts            <span class="c">the player model's place and pose each frame</span>
+│   │   ├── targeting.ts              <span class="c">reach, the target box and glow, each frame's aim</span>
+│   │   ├── quality.ts                <span class="c">ray tracing or fast, field of view, resizing, 3D grass</span>
+│   │   └── <span class="d">shading/</span>
+│   │       ├── shaders.ts            <span class="c">the GLSL: voxel ray-traced shadow and sky, block light, water, laser and phosphor</span>
+│   │       └── uniforms.ts           <span class="c">the uniforms every material shares</span>
+│   ├── <span class="d">looks/</span>
+│   │   ├── types.ts                  <span class="c">the Look interface: everything a look changes</span>
+│   │   ├── registry.ts               <span class="c">the looks in M's order, by id; the simulation's look</span>
+│   │   ├── looks.ts                  <span class="c">the looks' state and switches (lines, skin, fade), their hooks; the 2D view</span>
+│   │   ├── render.ts                 <span class="c">each frame's render in its look, the fade, the opening look and backdrop</span>
+│   │   ├── <span class="d">shared/</span>
+│   │   │   ├── outline-pass.ts       <span class="c">post-processing: composer, the outline pass both line looks use, bloom</span>
+│   │   │   └── outline.css           <span class="c">the HUD and menus as lines, both line looks (body.outline), in the look's ink (--line-*)</span>
+│   │   ├── <span class="d">color/</span>                  <span class="c">index.ts, color.css (body.color)</span>
+│   │   ├── <span class="d">laser/</span>                  <span class="c">index.ts, laser.css (laser's red ink and its own rules)</span>
+│   │   └── <span class="d">phosphor/</span>               <span class="c">index.ts, code-art.ts (its GLSL), fx.ts (shockwaves, the Necromancer), gravestone.ts, caption.ts, phosphor.css</span>
+│   ├── <span class="d">views/</span>
+│   │   ├── views.ts                  <span class="c">switching views and looks; the classic view's picture</span>
+│   │   ├── camera.ts                 <span class="c">the camera each frame: first/third person, the 2D and 3/4 flights, quakes</span>
+│   │   └── memory.ts                 <span class="c">the memory strip's slot beside the classic view</span>
+│   ├── <span class="d">themes/</span>
+│   │   ├── types.ts                  <span class="c">the Theme and SetPieces interfaces (the plugin contract)</span>
+│   │   ├── state.ts                  <span class="c">installed themes, the pick (saved), what is on screen</span>
+│   │   ├── transition.ts             <span class="c">switching themes: the wave or fade, tile by tile</span>
+│   │   ├── atlas.ts                  <span class="c">repainting the atlas with a theme's tiles; blending two</span>
+│   │   ├── blocks.ts                 <span class="c">what the world's build asks the theme: height, face tile, decorations</span>
+│   │   ├── crowns.ts                 <span class="c">tree crowns as boxes, morphing between themes</span>
+│   │   ├── creatures.ts              <span class="c">a creature's model and tint under a theme</span>
+│   │   ├── creature-morph.ts         <span class="c">a creature morphing model as the wave passes</span>
+│   │   ├── sky.ts                    <span class="c">a theme's sky, fog and light; a set piece's fog</span>
+│   │   ├── weather.ts                <span class="c">a theme's weather, made and let go</span>
+│   │   ├── names.ts                  <span class="c">what things are called on screen under a theme</span>
+│   │   ├── draw.ts                   <span class="c">the Draw kit decorate and set pieces build with</span>
+│   │   └── ui.ts                     <span class="c">picking a theme: T, Shift+T, Settings</span>
+│   ├── <span class="d">scenes/</span>
+│   │   ├── active.ts                 <span class="c">which scene is on (?scene=), its saves, the set piece being drawn</span>
+│   │   ├── place.ts                  <span class="c">set pieces written into a new world's engine snapshot</span>
+│   │   └── orient.ts                 <span class="c">turning a set piece to a side of the map</span>
+│   ├── <span class="d">effects/</span>
+│   │   ├── chest.ts                  <span class="c">a chest opening, the world rebuild, low-need warnings</span>
+│   │   ├── death.ts                  <span class="c">dying: falling, sinking, lava's fire, the death note and cause</span>
+│   │   ├── god.ts                    <span class="c">?god and ?debug: warp, ghost, glow, nuke</span>
+│   │   ├── hang.ts                   <span class="c">the arm's swing; hanging over lava's edge</span>
+│   │   ├── hits.ts                   <span class="c">knockback, trampled grass, sealed doors' glow, the Necromancer's shield</span>
+│   │   ├── necromancer.ts            <span class="c">the Necromancer's effects; where creatures look; the sleeping pose</span>
+│   │   ├── shots.ts                  <span class="c">fireballs and iceballs: glow and trails</span>
+│   │   ├── tunnel.ts                 <span class="c">through the portal: 2D tunnel, captions, 3D tunnel, the fall</span>
+│   │   └── victory.ts                <span class="c">the Necromancer's death, VICTORY, the portal</span>
+│   ├── <span class="d">input/</span>
+│   │   ├── intent.ts                 <span class="c">one Craftax action from the input, the tool picked, sending it</span>
+│   │   ├── keyboard.ts               <span class="c">every key's meaning</span>
+│   │   ├── pointer.ts                <span class="c">mouse: hold to act, clicks, looking, the 3/4 orbit</span>
+│   │   ├── touch.ts                  <span class="c">touch: looking, the pad, Use and Sleep</span>
+│   │   ├── aim.ts                    <span class="c">what a click acts on</span>
+│   │   ├── targets.ts                <span class="c">what a click or key means where you are</span>
+│   │   └── pathing.ts                <span class="c">walking to a clicked target, digging through, the nearest shore</span>
+│   ├── <span class="d">ui/</span>
+│   │   ├── snapshots.ts              <span class="c">the screenshot button, My Worlds' thumbnails</span>
+│   │   ├── <span class="d">hud/</span>
+│   │   │   ├── buttons.ts            <span class="c">tooltips, the top bar and looks bar, card docks</span>
+│   │   │   ├── hint.ts               <span class="c">flashed messages, the sealed-door hint, the hint line</span>
+│   │   │   └── layout.ts             <span class="c">touch buttons' places; what's near you (sea, lava, fountains)</span>
+│   │   └── <span class="d">screens/</span>
+│   │       ├── screen.ts             <span class="c">show a screen, pause and play, pointer capture</span>
+│   │       ├── settings.ts           <span class="c">the Settings window, its tabs, the agents list</span>
+│   │       ├── options.ts            <span class="c">speed, click and target options, crosshair, hands, arrow keys</span>
+│   │       ├── panel.ts              <span class="c">the inventory screen (E)</span>
+│   │       ├── help.ts               <span class="c">the help screen; clicks that close a menu</span>
+│   │       └── worlds.ts             <span class="c">other worlds, My Worlds, the ask box, the death screen's retry</span>
+│   ├── <span class="d">sound/</span>
+│   │   ├── core.ts                   <span class="c">the Sound class: context, graph, offline render, building blocks</span>
+│   │   ├── world.ts                  <span class="c">you in the world: steps, swings, chopping, mining, drinking</span>
+│   │   ├── creatures.ts              <span class="c">combat and creature voices</span>
+│   │   ├── events.ts                 <span class="c">clips, crafting, bells, chests, achievements, the boss, death</span>
+│   │   ├── ambient.ts                <span class="c">the heartbeat, loops, far-off sounds, each place's ambience</span>
+│   │   ├── gate.ts                   <span class="c">thins sounds when a fast bot plays; routes Theme.sounds</span>
+│   │   └── common.ts                 <span class="c">mute and volume keys, recorded voices, reverb</span>
+│   ├── <span class="d">replay/</span>
+│   │   ├── recording.ts              <span class="c">in the game: the camera as keys, the record button, kept replays</span>
+│   │   └── <span class="d">page/</span>                   <span class="c">the replay page, one module per part</span>
+│   │       ├── open.ts               <span class="c">the query, loading the game page and a recording, fit, kept recordings</span>
+│   │       ├── transport.ts          <span class="c">play and pause, sound level, the timeline (seek, trim, zoom)</span>
+│   │       ├── keyframes.ts          <span class="c">trims and camera keyframes</span>
+│   │       ├── side.ts               <span class="c">the side panel: view, look and theme per keyframe, HUD options</span>
+│   │       ├── share.ts              <span class="c">Share: file, video, screenshot, link and embed</span>
+│   │       └── video.ts              <span class="c">the page's keys; making a video</span>
+│   ├── <span class="d">resources/</span>
+│   │   ├── <span class="d">blocks/</span>
+│   │   │   ├── paint.ts              <span class="c">the painting kit: 16 × 16 tile, seeded randoms, def() registers a painter</span>
+│   │   │   ├── atlas.ts              <span class="c">every painter drawn into one atlas; lava frames; uv and icon lookups</span>
+│   │   │   ├── outline-atlas.ts      <span class="c">line drawings at 4× for laser and phosphor</span>
+│   │   │   └── <span class="d">painters/</span>           <span class="c">the tile painters, by family: terrain, realms, objects, floors</span>
+│   │   └── <span class="d">items/</span>
+│   │       ├── registry.ts           <span class="c">what you hold, make and wear: hotbar, recipes, spells, armor</span>
+│   │       └── icons.ts              <span class="c">the HUD's pixel icons, in every ink</span>
+│   └── <span class="d">styles/</span>                     <span class="c">game.css, menus.css, phone.css, replay.css; each look's own in src/looks/&lt;look&gt;/</span>
+│
+├── <span class="d">tools/</span>
+│   ├── check-sizes.ts                <span class="c">npm run sizes: the 500-line rule</span>
+│   ├── runtime-files.ts              <span class="c">before dev and build: copies onnxruntime-web and the engine (../craftax-wasm or CRAFTAX_WASM)</span>
+│   └── make_pixel_font.py            <span class="c">builds public/fonts/craftax-pixel.woff</span>
+│
+└── <span class="d">vendor/</span>
+    └── <span class="d">mp4-muxer/</span>                  <span class="c">mp4-muxer.mjs (1,879) + LICENSE (MIT), for replay videos; not size-checked</span>
+</pre>
+
+<h2 id="notes">2. Notes on the layout</h2>
+<ul>
+<li><strong>Two kinds of top folder.</strong> <code>src/</code> holds the parts, one job a module; <code>js/</code> holds the two pages' entry points (<code>main.ts</code>, <code>replay-page.ts</code>), the parts not yet moved, and three thin re-export files (<code>world.ts</code>, <code>sound.ts</code>, <code>textures.ts</code>) that keep old import paths working.</li>
+<li><strong>Built, not kept.</strong> <code>engine/</code> and <code>public/agent/</code> are git-ignored and filled by <code>tools/runtime-files.ts</code> before <code>npm run dev</code> and <code>npm run build</code>; a missing engine stops with a message saying how to get one.</li>
+<li><strong>Mismatches.</strong> <code>tsconfig.json</code> and <code>tools/check-sizes.ts</code> list a <code>crystal/</code> folder that doesn't exist in this repo. <code>NOTICE.md</code> places the font script in <code>public/fonts/</code>; it is in <code>tools/</code>.</li>
+</ul>
+
+</main></body>
+</html>

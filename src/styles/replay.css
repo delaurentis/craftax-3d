@@ -1,0 +1,211 @@
+/* The replay page (replay.html): the stage, the side panel, the timeline and the share windows. */
+@font-face { font-family: "Craftax Pixel"; src: url("/fonts/craftax-pixel.woff") format("woff"); font-display: block; }
+:root { --bg: #111; --panel: #1d1d1d; --line: #333; --text: #ddd; --dim: #888; --hi: #ffd84a; --rec: #e83a2a; --key: #4ab0ff; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.4 "Craftax Pixel", "Courier New", monospace; -webkit-font-smoothing: none; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+button, select { font: inherit; color: var(--text); background: #2a2a2a; border: 2px solid #555; border-bottom-color: #222; border-right-color: #222; padding: 4px 10px; cursor: pointer; }
+button:hover { background: #363636; } button.on { background: #4a3a10; border-color: var(--hi); }
+button:disabled { opacity: .4; cursor: default; }
+#main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; position: relative; overflow: hidden; min-height: 0; min-width: 0; }
+/* the editor's side, outside the recorded frame (Pete: nothing in the frame is a control): the view, the look, what the HUD shows */
+#side { width: 190px; flex: none; background: var(--panel); border-left: 2px solid var(--line); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+body:not(.loaded) #side { display: none; }
+#side h3 { margin: 6px 0 0; font-size: 13px; font-weight: normal; color: var(--hi); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 18px; line-height: 18px; flex: none; }   /* (one line, one height: nothing below moves) */
+#side h3:not(:first-child) { margin-top: 18px; }                      /* (room above each section after the first: Pete) */
+/* the game's own view and look buttons (index.html #looks, read from it so they stay the same) */
+#side-looks { display: flex; flex-direction: column; gap: 6px; }
+#side-theme { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }   /* (its h3 is a first child: the section gap here) */
+#side-theme[hidden] { display: none; }
+#side-theme select { width: 100%; }
+#side-looks .seg { display: flex; align-items: stretch; }
+#side-looks .seg button { font: inherit; color: #fff; background: rgba(0,0,0,.55); border: 2px solid #8b8b8b; margin-left: -2px; padding: 4px 6px; cursor: pointer; line-height: 0; }
+#side-looks .seg button:first-child { margin-left: 0; }
+#side-looks .seg button svg { display: block; } #side-looks .hi-edge { display: none; }
+#side-looks .seg button:hover { border-color: #fff; position: relative; }
+#side-looks .seg button.on { background: rgba(255,255,160,.22); border-color: #fff; position: relative; }
+#side-looks .seg button:disabled { opacity: .35; }
+#keynav { float: right; } #keynav button { padding: 0 6px; font-size: 11px; line-height: 12px; }
+#keylist { display: flex; flex-direction: column; gap: 3px; flex: 1; min-height: 60px; overflow-y: auto; }   /* last: it can get long (Pete) */
+#keylist .kr { display: flex; gap: 8px; align-items: center; line-height: 16px; padding: 3px 6px; background: #1b1b1b; border: 1px solid #333; cursor: pointer; font-size: 12px; }
+#keylist .kr i { width: 8px; height: 8px; margin: 0 1px; background: var(--key); transform: rotate(45deg); flex: none; align-self: center; position: relative; top: -1px; } #keylist .kr.view i { background: #a0d0ff; }
+#keylist .kr.sel { border-color: var(--hi); background: #2a2610; } #keylist .kr.sel i { background: var(--hi); }
+#keylist .kr { white-space: nowrap; } #keylist .kr span { flex: 1; }
+#keylist .kr .ic { display: flex; gap: 3px; font-weight: normal; } #keylist .kr .ic svg { width: 16px; height: 16px; display: block; }
+#keylist .kr .ic .hi-edge { display: none; }
+#keylist .kr .x { padding: 0 4px; font-size: 11px; line-height: 14px; border-width: 1px; color: var(--dim); background: transparent; }
+#keylist .kr .x:hover { color: #fff; background: #5a2a2a; border-color: #a55; }
+#side label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+/* pixel checkboxes, the game's own (index.html #settings) */
+/* the bot's brain from this keyframe on (Pete): hidden, small in the corner, or expanded over the picture */
+#brainsize { display: flex; } #brainsize button { background: rgba(0,0,0,.55); border: 2px solid #8b8b8b; margin-left: -2px; padding: 4px 6px; line-height: 0; }   /* (the look buttons' style) */
+#brainsize button:first-child { margin-left: 0; } #brainsize button svg { display: block; } #brainsize button:hover { border-color: #fff; position: relative; }
+#brainsize button.on { background: rgba(255,255,160,.22); border-color: #fff; position: relative; }
+#brainsize.off { opacity: .35; pointer-events: none; }
+svg.brn.hidden { opacity: .3; filter: grayscale(1); } svg.brn.big { outline: 1px solid #e88ab0; outline-offset: -1px; }
+#orient { display: flex; gap: 4px; } #orient button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 4px; font-size: 11px; }
+#side input[type=checkbox] { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 0; flex: none; background: #3a3a3a; border: 2px solid #000;
+  box-shadow: inset 2px 2px 0 #222, inset -2px -2px 0 #5a5a5a; border-radius: 0; cursor: pointer; }
+#side input[type=checkbox]:checked { background: #3a3a3a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' shape-rendering='crispEdges'%3E%3Cpath d='M10 0h2v2h-2v2H8v2H6v2H4v2H2V8H0V6h2v2h2V6h2V4h2V2h2z' fill='%23ffff80'/%3E%3C/svg%3E") no-repeat center; }
+#side input[type=checkbox]:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; } #side small { color: var(--dim); font-size: 11px; }
+#side .hint { margin: 2px 0 4px; font-size: 11px; color: var(--dim); }
+@media (max-width: 700px) { #main { flex-direction: column; } #side { width: auto; border-left: 0; border-top: 2px solid var(--line); flex-direction: row; flex-wrap: wrap; max-height: 40vh; } }
+#frame { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: #000; }
+body:not(.loaded) #frame { display: none; }                          /* (the recordings list: no empty black frame behind it) */
+body.framing #frame { opacity: 0; } body.framing #stage { background: #000; }   /* (the game page loading: its start menu never shows, only the recording once it is in) */
+#frame { transition: opacity .25s; }
+#shield { position: absolute; inset: 0; cursor: pointer; }
+body.free #shield { display: none; }
+body.free #stage { outline: 2px solid var(--key); outline-offset: -2px; }
+/* no replay open: the game's own menu backdrop behind the list (a world picture, dimmed as the game's menus dim it: Pete) */
+body:not(.loaded) #stage { background: linear-gradient(rgba(16,16,16,.62), rgba(16,16,16,.62)), var(--backdrop, none) center / cover no-repeat #111; }
+body.arriving:not(.loaded) #drop, body.arriving:not(.loaded) #nav { display: none; } body.arriving:not(.loaded) #stage { background: #000; }
+body:not(.loaded) #drop { border-color: rgba(255,255,255,.25); color: #ccc; text-shadow: 0 1px 2px #000; }
+#drop { position: absolute; inset: 24px; border: 3px dashed #444; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; color: var(--dim); padding: 16px; }
+#drop b { color: var(--text); font-size: 20px; font-weight: normal; }
+body.drag #drop { border-color: var(--hi); color: var(--hi); }
+body.loaded #drop { display: none; }
+#kept { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; width: min(640px, 100%); color: var(--text); }
+#kept h2 { font-size: 16px; font-weight: normal; margin: 0 0 4px; color: var(--hi); }
+/* one grey list (Pete): rows split by lines inset from the edges, no gaps; it scrolls once it's long; every button the same height */
+#kept .list { background: #1d1d1d; border: 1px solid #333; max-height: min(60vh, 520px); overflow-y: auto; }
+#kept .k { position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 10px; text-align: left; }
+#kept .k + .k::before { content: ""; position: absolute; left: 10px; right: 10px; top: 0; border-top: 1px solid #333; }
+#kept .k span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #kept .k small { color: var(--dim); }
+#kept .k button { height: 32px; min-width: 32px; display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; flex: none; }
+#kept .k button.dl, #kept .k button[data-x] { padding: 0 8px; }        /* (download: a pixel arrow over a line) */
+#bar { padding: 8px 16px 10px; background: var(--panel); border-top: 2px solid var(--line); display: grid; grid-template-columns: auto minmax(160px, 1fr) auto; column-gap: 10px; row-gap: 6px; align-items: center; }
+/* (Pete: the bar gets the width) the controls stack in a column either side: play and the time, the keyframe tools under them;
+   Share, and the sound, speed and loop under it */
+#tl { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 8px; }
+#track { grid-column: 2; grid-row: 1; }
+#right2 { grid-column: 3; grid-row: 1 / 3; align-self: start; display: flex; flex-direction: column; gap: 6px; }
+#right2 select, #right2 #loop { width: 100%; }
+body:not(.loaded) #bar { display: none; }
+#bar, #side, #nav, #sharepop .win { user-select: none; -webkit-user-select: none; }   /* (dragging the bar never selects text: Pete) */
+#embed-code { user-select: text; -webkit-user-select: text; }
+#time { min-width: 120px; color: var(--dim); }
+#track { position: relative; height: 26px; cursor: pointer; touch-action: none; }
+#track .rail { position: absolute; left: 12px; right: 12px; top: 11px; height: 4px; background: #444; }
+#track .kept { position: absolute; top: 9px; height: 8px; background: #6a5a20; }
+#track .head, #lane .head { position: absolute; top: 2px; width: 3px; height: 22px; background: var(--hi); margin-left: -1px; pointer-events: none; }
+/* the trim ends: the bar's two ends, dragged in (I and O set them at the playhead too) */
+#track .trim { position: absolute; top: 0; width: 8px; height: 26px; background: var(--hi); cursor: ew-resize; }
+#track .trim[data-end="in"] { margin-left: -8px; border-radius: 3px 0 0 3px; } #track .trim[data-end="out"] { border-radius: 0 3px 3px 0; }
+#track .trim::after { content: ""; position: absolute; left: 3px; top: 8px; width: 2px; height: 10px; background: #6a5a20; }
+/* the keyframe row under the bar: click it to drop one; a diamond is a keyframe (drag it along, click it to set it) */
+#lanetools { grid-column: 1; grid-row: 2; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }   /* (zoom along the row's bottom) */
+#lanetools button { padding: 2px 7px; font-size: 12px; } #lanetools .zoom { display: flex; gap: 4px; align-items: center; } #lanetools .zoom span { font-size: 12px; color: var(--dim); margin-right: 2px; } #lanetools .zoom button { flex: 1; }
+/* (zoomed: what's outside the window is cut off. The window's time runs PAD px in from each end (replay.html pc), so the first and
+   last keyframes and both trim handles are whole at the ends: Pete) */
+#track, #lane { overflow: hidden; }
+#lane { grid-column: 2; grid-row: 2; position: relative; height: 156px; background: #191919; border: 1px solid #2c2c2c; cursor: grab; touch-action: none; }
+/* the time ruler along the keyframe row: ticks at a step that suits the zoom */
+#lane .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid #2e2e2e; pointer-events: none; }
+#lane .tick span { position: absolute; left: 3px; bottom: 1px; font-size: 9px; color: #666; white-space: nowrap; }
+#lane .head { top: 0; height: 22px; opacity: .5; }                    /* (only across the diamonds, not through what's under them) */
+/* a keyframe (Pete): one diamond, and under it what it sets, stacked: the view, the look, and a camera if you framed it */
+#lane .key { position: absolute; top: 4px; z-index: 1; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: grab; padding: 0 2px 2px; }
+#lane .key .dia { width: 12px; height: 12px; margin: 2px 0 3px; background: var(--key); transform: rotate(45deg); border: 2px solid #0d2a40; }
+#lane .key.view .dia { background: #a0d0ff; } #lane .key.sel .dia { background: var(--hi); border-color: #fff; }
+#lane .key.sel { background: rgba(255,216,74,.12); outline: 1px solid rgba(255,216,74,.5); }
+#lane .key svg { width: 16px; height: 16px; display: block; }
+/* the camera: dim while the keyframe keeps the recorded camera, lit once you've moved it yourself (Pete) */
+#lane .key b.thm { width: 16px; height: 16px; line-height: 16px; text-align: center; font: 12px "Craftax Pixel", monospace; color: #ddd; background: #2c2c2c; border: 1px solid #555; box-sizing: border-box; }
+#lane .key .thm.dim { opacity: .45; }
+svg.cam { opacity: .25; filter: grayscale(1); } svg.cam.on { opacity: 1; filter: none; } #lane .key.sel svg.cam.on { cursor: pointer; }
+#lane .key .kx { font-weight: normal; font-size: 11px; line-height: 14px; width: 16px; text-align: center; color: var(--dim); cursor: pointer; border: 1px solid #444; background: #222; }
+#lane .key .kx:hover { color: #fff; background: #5a2a2a; border-color: #a55; }
+.askpop { position: fixed; inset: 0; z-index: 11; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.askpop .win { background: #1d1d1d; border: 2px solid #555; padding: 16px; width: min(380px, 100%); }
+.askpop h2 { margin: 0 0 6px; font-size: 18px; font-weight: normal; color: var(--hi); } .askpop p { margin: 0 0 14px; color: var(--text); }
+.askpop .row { display: flex; gap: 8px; justify-content: flex-end; } #lane .key .hi-edge { display: none; }
+/* Share: a pixel share icon; its choices in a window at the middle of the screen */
+/* Share: at the top of the side, the page's top right (Pete) */
+#share { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 10px; flex: none; }
+#share span { line-height: 1; }
+/* the replay's sound: on or off and a level, this viewer's own (not saved in the recording, never the game's own volume) */
+#vol { display: flex; align-items: center; gap: 4px; } #mute { padding: 3px 6px; line-height: 0; }
+#mute .x { display: none; } #mute.off .x { display: inline; } #mute.off .w { display: none; }
+#volume { width: 70px; accent-color: var(--hi); }
+#sharepop { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; padding: 16px; }
+#sharepop.on { display: flex; }
+#sharepop .win { background: #1d1d1d; border: 2px solid #555; padding: 16px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 8px; }
+#sharepop h2 { margin: 0 0 4px; font-size: 18px; font-weight: normal; color: var(--hi); }
+#sharepop .opt { display: flex; align-items: center; gap: 12px; text-align: left; padding: 8px 10px; }
+.askpop .vsound { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; cursor: pointer; } .askpop .vsound input { accent-color: var(--hi); margin: 0; width: 16px; height: 16px; }
+#sharepop .opt svg { flex: none; } #sharepop .opt small { display: block; color: var(--dim); font-size: 12px; }
+/* the embed code: its own window, wide enough to read the whole snippet (Pete), and a Copy button */
+#embedpop { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center; padding: 16px; }
+#embedpop.on { display: flex; }
+#embedpop .win { background: #1d1d1d; border: 2px solid #555; padding: 16px; width: min(760px, 100%); display: flex; flex-direction: column; gap: 10px; }
+#embedpop h2 { margin: 0; font-size: 18px; font-weight: normal; color: var(--hi); } #embedpop .note { margin: 0; color: var(--dim); font-size: 12px; }
+#embed-code { width: 100%; height: 190px; resize: vertical; font: 14px/1.6 "Craftax Pixel", ui-monospace, monospace; -webkit-font-smoothing: none; background: #0c0c0c; color: #ccc; border: 1px solid #444; padding: 10px; white-space: pre-wrap; word-break: break-all; }
+/* above the code: the sizes, small, on the left; Copy on the right (Pete) */
+#embedpop .tools { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; } #embedpop .tools > :first-child { flex: 1; }
+#embed-aspect { display: flex; gap: 4px; } #embed-aspect button { font-size: 11px; padding: 2px 8px; }
+#embed-link { width: 100%; height: 64px; resize: none; font: 14px/1.6 "Craftax Pixel", ui-monospace, monospace; -webkit-font-smoothing: none; background: #0c0c0c; color: #ccc; border: 1px solid #444; padding: 10px; word-break: break-all; }
+#embedpop .tools .lead { color: var(--text); font-size: 13px; }
+#embed-long { word-break: break-all; color: #ccc; font-family: "Craftax Pixel", monospace; }
+#embed-how { display: flex; gap: 0; border-bottom: 2px solid #555; } #embed-how button { border-bottom: 0; margin-right: -2px; padding: 6px 14px; }
+#embed-how button.on { background: #3a3a3a; color: var(--hi); }
+#embed-wait { display: flex; gap: 12px; align-items: center; min-height: 60px; color: var(--text); } #embed-wait span { flex: 1; }
+#embedpop [data-pane], #embed-ready, #embed-retry, #embed-wait, #embed-mp4, #embed-nohost { display: none; }
+#embedpop.nohost #embed-nohost { display: flex; flex-direction: column; gap: 10px; color: var(--text); } #embedpop.nohost #embed-wait, #embedpop.nohost > .win > .row { display: none !important; }   /* (no wait line, no Done row: its own buttons) */
+#embed-nohost p { margin: 0; } #embed-nohost a { color: var(--hi); } #embedpop #embed-nohost .row { justify-content: flex-start; }
+#embed-nohost a.btn { text-decoration: none; display: inline-flex; align-items: center; color: var(--text); background: #2a2a2a; border: 2px solid #555; border-bottom-color: #222; border-right-color: #222; padding: 4px 10px; } #embed-nohost a.btn:hover { background: #363636; }   /* (a link, as the buttons) */
+#embedpop.ready #embed-ready { display: flex; flex-direction: column; gap: 10px; } #embedpop:not(.ready) #embed-wait { display: flex; }
+#embedpop.failed #embed-retry { display: inline-block; }
+#embedpop.ready[data-how="code"] [data-pane="code"], #embedpop.ready[data-how="link"] [data-pane="link"], #embedpop.ready[data-how="mp4"] [data-pane="mp4"] { display: block; }
+#embedpop.ready[data-how="mp4"] #embed-mp4 { display: inline-block; }
+#embedpop .row { display: flex; gap: 8px; align-items: center; justify-content: flex-end; } #embed-copied { flex: 1; color: var(--hi); font-size: 12px; }
+/* the editor's way out: back to the game, or to the list of recordings */
+#nav { position: absolute; left: 10px; top: 10px; z-index: 3; display: none; gap: 6px; }
+body.loaded:not(.embed) #nav { display: flex; }
+#nav button { padding: 3px 8px; font-size: 12px; background: rgba(30,30,30,.85); }
+/* ?embed: the player alone, a thin bar over the bottom that shows on hover */
+body.embed #bar { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.6); border: 0; padding: 6px 10px; opacity: 0; transition: opacity .2s; }
+body.embed:hover #bar, body.embed.paused #bar { opacity: 1; }
+body.embed .edit { display: none !important; }
+body.embed #main { display: block; }
+body.embed #bar { display: flex; gap: 8px; align-items: center; } body.embed #track { flex: 1; } body.embed #right2 { flex-direction: row; }
+body.embed #stage { position: absolute; inset: 0; }
+/* "Play from here": always in the corner (not in the editor, which has its own button), and a big ▶ while an embed is paused */
+#badge { position: absolute; right: 10px; bottom: 10px; z-index: 3; padding: 6px 10px; background: rgba(0,0,0,.65); border: 2px solid var(--hi); color: var(--hi); text-decoration: none; font-size: 13px; display: none; }
+#badge span { color: var(--text); } #badge:hover { background: #4a3a10; }
+body.embed.loaded #badge { display: block; }
+body.embed:hover #badge { bottom: 58px; }                          /* above the controls while they show */
+/* paused (embed and editor): a [Play ▶] button on the picture itself (Pete): landscape in its top-right corner; portrait at its top
+   middle, or its very middle when Status or Inventory take the top. --fx/--fy/--fw/--fh: the frame as it sits on the stage (fit) */
+#bigplay { position: absolute; display: none; z-index: 2; align-items: center; gap: 8px; padding: 7px 12px 7px 14px; font: 16px/1 "Craftax Pixel", monospace; color: #fff;
+  background: rgba(0,0,0,.45); border: 2px solid rgba(255,255,255,.7); border-radius: 0; box-shadow: inset 0 0 0 2px rgba(0,0,0,.3);
+  left: calc(var(--fx, 0px) + var(--fw, 100%) - 12px); top: var(--who-y, calc(var(--fy, 0px) + 30px)); transform: translate(-100%, -50%); }
+#bigplay svg { display: block; } #bigplay:hover { background: rgba(0,0,0,.65); border-color: #fff; }
+body.port #bigplay { left: calc(var(--fx, 0px) + var(--fw, 100%) / 2); transform: translate(-50%, -50%); }   /* (level with the who badge: --who-y) */
+body.port:is(.show-inv, .show-status) #bigplay { top: calc(var(--fy, 0px) + var(--fh, 100%) / 2); transform: translate(-50%, -50%); }
+body.loaded.paused:not(.free):not(.capturing) #bigplay { display: flex; }
+/* the end of a recording cut for no spoilers (record.js `secret`): it fades to black and the line types out */
+#secret { position: absolute; inset: 0; z-index: 4; background: #000; opacity: 0; pointer-events: none; transition: opacity 1.6s; display: flex; align-items: center; justify-content: center; }
+#secret span { color: #ddd; font-size: clamp(16px, 3vw, 26px); white-space: pre; }
+body.secret #secret { opacity: 1; }
+body.secret #bigplay { display: none !important; }
+body.bare #bar, body.bare #shield, body.bare #badge, body.bare #bigplay { display: none !important; }
+body.bare #frame { pointer-events: none; }
+#edit-replay { display: none; position: absolute; left: 10px; top: 10px; z-index: 5; }
+body.view.loaded #edit-replay { display: block; }
+body.capturing #bar, body.capturing #side, body.capturing #nav { opacity: .35; pointer-events: none; }
+body.capturing #shield { cursor: progress; }
+#filming { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 5; display: none; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(0,0,0,.8); border: 2px solid #8b8b8b; white-space: nowrap; }
+body.capturing #filming { display: flex; }
+#filming .meter { width: 180px; height: 10px; background: #333; border: 1px solid #000; } #filming .meter i { display: block; height: 100%; width: 0; background: #e83a2a; }
+/* a phone (open.ts PHONE, Pete: the editor doesn't fit): play, trim and share; keyframes, what shows, the look, speed and loop are for
+   a bigger screen. Share in the bottom bar; the frame stands as the phone does */
+body.phone #main { position: relative; flex-direction: column; }
+body.phone #side { display: none !important; }
+body.phone #right2 #share { padding: 4px 8px; } body.phone #right2 #share span { display: none; }   /* Share in the bar (open.ts moves it): its icon */
+body.phone #bigplay { left: calc(var(--fx, 0px) + var(--fw, 100%) / 2) !important; top: calc(var(--fy, 0px) + var(--fh, 100%) / 2) !important; transform: translate(-50%, -50%) !important; }   /* in the picture's middle, clear of Game and Replays (Pete) */
+body.phone :is(#lanetools, #lane, #rate, #loop, #volume) { display: none !important; }
+body.phone #bar { grid-template-columns: auto minmax(0, 1fr) auto; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); }
+body.phone #right2 { grid-row: 1; flex-direction: row; align-self: center; }
+@media (orientation: portrait) { body.phone #time { min-width: 0; } body.phone #time .total { display: none; } }   /* an upright phone: the time now, not the total (Pete: no room) */

@@ -1,0 +1,412 @@
+/* Phones and touch screens, and the replay page's recorded frame. Loaded in this order: game, menus, phone, then each look's own (src/looks/<look>/<look>.css; index.html). */
+/* ---------- phones (narrow, or a short landscape touch screen): everything fits ----------
+   the status panel folds to its floor plaque (tap it: the stats, achievements and your armour drop down); the top bar sits at the
+   right; the view and art buttons stand down the left edge; the hotbar shrinks to fit; while the bot plays, its panel takes the
+   hotbar's place (folded to its name; open it to see the brain) */
+@media (max-width: 720px), (max-height: 520px) {
+  #info { top: 6px; left: 6px; font-size: 12px; pointer-events: auto; max-width: calc(100vw - 200px); }   /* up to the top bar at the right (you-or-bot sits with it now): its 190 px of buttons, 6 px in, 4 px apart; so "Gnomish Mines" (173 px, pips and all) fits a 375 px iPhone (Pete) */
+  #info .plaque { cursor: pointer; white-space: nowrap; gap: 4px; max-width: 100%; box-sizing: border-box; padding-left: 6px; padding-right: 6px; } #info .plaque .day { display: none; }   /* one row: the moon/sun dial says day or night */
+  #info .plaque b { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; } #info .pips { gap: 1px; flex: none; } #info .pips i { width: 2px; height: 9px; } #info .dial { width: 11px; height: 11px; } #info .plaque::after { content: "▾"; margin-left: 2px; opacity: .7; }
+  #info.open .plaque::after { content: "▴"; }
+  #info:not(.open) > :not(.plaque) { display: none; }
+  #gear { display: none; }
+  body.hud-open #gear { display: flex; left: 6px; right: auto; top: var(--gear-y, 150px); z-index: 4; }
+  #res { display: none; } body.hud-open #res { display: flex; left: 6px; right: auto; top: calc(var(--gear-y, 150px) + 46px); z-index: 4; }
+  /* the top bar: you-or-bot in the middle, screenshot / settings / pause in the right corner, no Capture mouse */
+  #topbar { left: 6px; right: 6px; top: 6px; transform: none; gap: 3px; justify-content: flex-end; pointer-events: none; }
+  #topbar .seg { pointer-events: auto; }
+  #topbar #seg-who { margin-right: 10px; }   /* with the others at the right (Pete): the floor plaque gets the room to say "Gnomish Mines"; set off from camera, settings, pause (Pete) */
+  #topbar .seg:has(#btn-capture) { display: none; }
+  #topbar .seg button { padding: 5px 6px; } #topbar .seg button svg { width: 22px; height: 22px; }   /* a thumb's size: you-or-bot, settings, pause (Pete) */
+  #info .plaque { min-height: 36px; padding-top: 4px; padding-bottom: 4px; }   /* the floor's plaque as tall as the buttons beside it (Pete) */
+  #looks { left: 4px; bottom: auto; top: 50%; transform: translateY(-50%); flex-direction: column; gap: 4px; }
+  #looks .seg { flex-direction: column; } #looks .seg button { margin-left: 0; margin-top: -2px; padding: 5px 6px; } #looks .seg button svg { width: 22px; height: 22px; }   /* the top bar's size (Pete) */
+  #hud-bottom { width: calc(100vw - 12px); bottom: 6px; }
+  #slotname { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }   /* never wraps */
+  #bars { gap: 2px 8px; } .bar { gap: 2px; } .bar img { width: max(8px, min(14px, calc((50vw - 26px) / var(--n, 9) - 2px))); height: auto; aspect-ratio: 1; }   /* 14px; shrinks only if a long row (high max) wouldn't fit half the width; a pixel apart each way: the glow doesn't run them together */
+  #hotbar { max-width: 100%; } #hotrow #hotbar { min-width: 0; } #btn-inv { position: static; flex: none; width: 40px; }   /* phones: in the row, the hotbar gives way */
+  .bar .zzz { position: static; align-self: flex-end; box-sizing: border-box; height: 32px; margin: -18px 8px 0 0; padding: 0 6px; display: flex; align-items: center; }   /* in the gap between the two sets of bars, just left of the bolts, as tall as the food and bolt rows together */
+  .slot { width: min(48px, calc((100vw - 48px) / 11)); height: min(48px, calc((100vw - 48px) / 11)); }
+  .slot img { width: 70%; height: 70%; } .slot .k { display: none; }
+  /* the bot playing: its panel in the hotbar's place, the bars just above it */
+  body:has(#botpanel[style*="block"]) #hotbar { display: none; }
+  body:has(#botpanel[style*="block"]) #hud-bottom { bottom: 58px; }
+  #botpanel { left: 6px; right: 6px; bottom: 6px; width: auto; }
+  #botpanel.big { width: calc(100vw - 12px); }
+  /* opened (the brain up): a compact panel in the middle, the brain's own width, not the whole bottom of the screen */
+  #botpanel:not(.folded):not(.big) { left: 50%; right: auto; width: min(290px, calc(100vw - 12px)); transform: translateX(-50%); }
+  #botpanel:not(.folded):not(.big) .brain-box { margin: 0 auto; }
+  /* a phone upright: opened, the panel and its brain the whole width (Pete) */
+  @media (orientation: portrait) {
+    #botpanel:not(.folded):not(.big) { left: 6px; right: 6px; width: auto; transform: none; }
+    #botpanel:not(.folded):not(.big) .brain-box, #botpanel:not(.folded):not(.big) canvas.brain { width: 100% !important; height: auto !important; }
+  }
+  /* any menu or window up (the menu, Settings, Research, the death screen...): the bot panel steps out of its way, so the menu is on top
+     (Pete); it comes back as it was when the menu closes */
+  body:has(.screen.on) #botpanel { display: none !important; }
+  #research .win, #settings .win, #help .win { box-sizing: border-box; max-height: calc(100dvh - 104px) !important; }   /* the whole window, border and padding too, clear of the top bar (Pete: Research, then Settings, too tall on an iPhone) */
+  /* the bot playing, its panel folded: a mini brain (still firing) under the bot's name, to tap open (Pete); no … (nothing of yours to open) */
+  body:has(#botpanel[style*="block"]) #btn-inv { display: none !important; }
+  #botpanel.folded > .brain-box { display: block !important; }
+  #botpanel.folded.tiny > .brain-box { display: none !important; }   /* collapsed: the name alone */
+  #botpanel.folded:not(.tiny) .head button.mcfg { display: block; position: absolute; left: 8px; bottom: 6px; margin: 0; padding: 6px; background: rgba(0,0,0,.55); border: 0; cursor: pointer; line-height: 0; opacity: .8; }   /* the gear in the lower-left: Settings' Agent tab (Pete) */
+  #botpanel.folded:not(.tiny) .head button.grow { position: absolute; right: 8px; bottom: 6px; margin: 0; padding: 6px; background: rgba(0,0,0,.55); }   /* expand in the brain's lower-right corner, clear of the collapse arrow (Pete) */
+  #botpanel.folded .brain-box, #botpanel.folded canvas.brain { width: 100% !important; height: auto !important; }
+  #botpanel.folded canvas.brain { margin: 4px 0 0 !important; }
+  /* upright: the mini brain in the bottom-right corner, the bars stacked down the left beside it: hearts, water, mana, food, energy */
+  @media (orientation: portrait) {
+    #botpanel.folded { left: auto; right: 6px; width: min(52vw, 220px); box-sizing: border-box; padding: 6px 8px; }
+    #botpanel.folded.tiny { width: auto; }
+    body:has(#botpanel.folded[style*="block"]) #hud-bottom { left: 6px; right: auto; bottom: 6px; width: auto; transform: none; align-items: flex-start; }
+    body:has(#botpanel.folded[style*="block"]) #bars { grid-template-columns: auto; gap: 4px; }
+    body:has(#botpanel.folded[style*="block"]) .bar { justify-content: flex-start; }
+    body:has(#botpanel.folded[style*="block"]) .bar.right { flex-direction: row-reverse; justify-content: flex-end; }   /* food and energy, drawn mirrored for the right side: here they empty from the right like the hearts and water (Pete) */
+    body:has(#botpanel.folded[style*="block"]) .bar img { width: max(8px, min(16px, calc((48vw - 24px) / var(--n, 9) - 2px))); }
+    body:has(#botpanel.folded[style*="block"]) .bar[data-k="heart"] { order: 1; } body:has(#botpanel.folded[style*="block"]) .bar[data-k="drop"] { order: 2; }
+    body:has(#botpanel.folded[style*="block"]) .bar[data-k="star"] { order: 3; } body:has(#botpanel.folded[style*="block"]) .bar[data-k="food"] { order: 4; }
+    body:has(#botpanel.folded[style*="block"]) .bar[data-k="bolt"] { order: 5; }
+    body:has(#botpanel.folded[style*="block"]) .bar .zzz, body:has(#botpanel.folded[style*="block"]) #slotname { display: none; }   /* the bot sleeps on its own */
+  }
+  canvas[data-pixel-text] { max-width: 92vw !important; height: auto !important; }
+  #toasts { right: 6px; align-items: flex-end; } .toast { text-align: right; min-width: 0; }   /* achievements: against the right edge, text and all */
+  body:has(.screen.on) #looks { display: none; }   /* a window up: the side buttons would sit on it */
+  #touch { --touch-y: 112px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #looks { top: 44px; left: 10px; transform: none; }   /* a touch in from the edge (Pete) */
+  #info.open .plaque .chip { display: inline-flex; margin-left: 4px; } #info.open .chips .chip:first-child { display: none; }   /* opened: the score and its % up in the floor's plaque, the rest below (Pete) */
+  #hud-bottom { width: auto; }   /* the bars over the hotbar only, clear of the pad and Use in the corners */
+  /* on a phone: the pad and Use centred top to bottom, the pad beside the view buttons' column; the pad's middle a Use too */
+  body { --lift: clamp(-20px, var(--pad-lift, 0px), 36px); }   /* Controls height: as far as the bars below and the top bar above allow */
+  #touch #tpad, #touch #tuse { top: calc(50% - var(--lift, 0px)); bottom: auto; transform: translateY(-50%); }
+  #touch #tpad { left: 72px; top: calc(50% - 10px - var(--lift, 0px)); grid-template: repeat(3, 62px) / repeat(3, 62px); } #touch #tuse { right: 66px; } #touch #tpad .use-mid { display: grid; place-items: center; }   /* a bigger pad (62 px arrows) a little in from the left, Use in from the right (Pete) */
+  /* Sleep as a Zzz button just right of the hotbar (11 slots of 48 px: about 556 px wide), as tall as a slot */
+  #touch #tsleep { right: auto; left: calc(50% + 286px); bottom: 6px; width: 56px; height: 56px; font-size: 16px; }   /* #touch: over the base rules below */
+  #touch #tsleep.asking { width: 56px; min-width: 0; padding: 0 2px; white-space: normal; font-size: 12px; line-height: 1.25; text-align: center; }   /* the square: "Hold to sleep" wraps inside it */
+  /* the bot playing: its panel in the bottom-right corner (as on a desktop), not centered under everything; the bars stay low, between */
+  #botpanel, #botpanel:not(.folded):not(.big) { left: auto; right: 6px; bottom: 6px; width: 280px; transform: none;   /* never wider than the hearts-and-food readout (292 px) */
+    max-height: calc(100vh - 50px); overflow-y: auto; box-sizing: border-box; }
+  body:has(#botpanel[style*="block"]) #hud-bottom { bottom: 6px; }
+}
+/* a short screen on its side, only (a phone; not a tablet, though its controls take the phone's place: 32.5em is 520px, written so
+   src/ui/side.ts leaves it out): the menus, the death screen and the E screen fit the short height; a tablet has the room for the
+   big screen's (Pete: the gravestone in the middle, as on a desktop) */
+@media (max-height: 32.5em) and (orientation: landscape) {
+  /* the E screen: Inventory and Weapons and armor side by side, one line (Pete): the 18 slots shrink to fit the window's width */
+  #panel .invpair { display: flex; gap: 12px; container-type: inline-size; } #panel .invpair section { flex: none; }
+  /* Make: one line all the way across, its 12 recipes shrinking to fit, never wrapping; Demolish at the bottom of the window, left (Pete) */
+  #panel .makerow section { container-type: inline-size; } #panel .makerow .grid { flex-wrap: nowrap; gap: 3px; }
+  #panel .makerow .cell { --c: min(48px, calc((100cqw - 11 * 3px) / 12)); width: var(--c); height: var(--c); box-sizing: border-box; } #panel .makerow .cell img { width: 70%; height: 70%; }
+  #panel .invpair .grid { flex-wrap: nowrap; gap: 3px; } #panel .invpair section + section > h2 { margin-top: 0; }   /* (side by side: level with Inventory) */
+  #panel .invpair .cell { --c: min(48px, calc((100cqw - 12px - 16 * 3px) / 18)); width: var(--c); height: var(--c); box-sizing: border-box; }
+  #panel .invpair .cell img { width: 70%; height: 70%; }
+  .menu { max-width: 94vw; }
+  /* menus: start below the top bar and scroll if they must; the big pixel titles shrink to fit a short screen */
+  .screen.on { place-items: start center; padding: 54px 0 12px; overflow-y: auto; box-sizing: border-box; }   /* clear of the top bar (Pete) */
+  .menu { gap: 7px; }
+  .menu h1 canvas[data-pixel-text] { width: auto !important; max-height: 56px; }
+  /* the death screen on its side: the gravestone in the middle, its buttons either side of it (no room for them under it) */
+  #dead .menu { display: grid; grid-template-columns: 1fr auto 1fr; grid-template-areas: "title title title" "l tomb r1" "l tomb r2" ". seed .";
+    align-items: center; gap: 6px 22px; max-width: 96vw; }
+  #dead .menu > h1 { grid-area: title; margin: 0 !important; } #dead .menu > h1 canvas { max-height: 40px; }
+  #dead .tomb { grid-area: tomb; margin: 0; } #dead .tomb .stone { width: 250px; padding: 26px 16px 8px; font-size: 13px; line-height: 1.35; }
+  #dead .tomb .mound { width: 290px; } #dead .tomb .rip { margin: 0 auto 2px; max-height: 40px; width: auto !important; }
+  #dead .deadseed { grid-area: seed; margin: 0; }
+  #dead .pair { grid-area: l; flex-direction: column; justify-self: end; width: auto; gap: 10px; }
+  #dead .pair.worlds { grid-area: r1; align-self: end; justify-self: start; } #dead #btn-dead-menu { grid-area: r2; align-self: start; justify-self: start; }
+  #dead .menu .mc { width: 180px; min-width: 0; margin: 0; flex: none; }
+  body:has(.screen.on) :is(#hotrow, #btn-top-full.loose, #btn-pads, #botpanel) { display: none !important; }   /* a menu up: no hotbar or bot panel under it (Pete) */
+}
+:where(body) { --lift: max(-100px, var(--pad-lift, 0px)); }   /* (no weight: each layout's own wins) Controls height (Settings → Gameplay): up or down from each layout's own place, as far as it allows */
+/* ---------- touch: the move pad bottom-left, Use bottom-right, both above the hotbar; only while you play (not the bot, no menu) ---------- */
+#touch { display: none; }
+body.touch #touch { display: block; }
+@media (max-width: 720px), (max-height: 520px) { #touch { display: block; } .bar .zzz { display: none; } }   /* the phone layout always (a mouse can press them too) */
+body:has(.screen.on) #touch, body:has(#botpanel[style*="block"]) #touch { display: none !important; }
+body.touch #btn-capture { display: none; }                   /* nothing to capture on a touch screen */
+/* ?replay (replay.html, Pete): nothing in the recorded frame is a control. Of the top bar only who's playing (you or the bot)
+   stays, and not as a button; the views move outside the frame (replay.html's side); no Zzz, no touch pads, no hotbar key numbers.
+   The status, the inventory, the hotbar, the achievement toasts and the treasure from chests each switch off on their own
+   (replay.html's Show) */
+body.replay #topbar > :not(#seg-who), body.replay #looks, body.replay #tsleep, body.replay .bar .zzz, body.replay #touch, body.replay #btn-pads, body.replay #btn-inv, body.replay #hotbar .slot .k { display: none !important; }
+body.replay #seg-who { pointer-events: none; }
+/* a replay in portrait (replay.html, a 720 × 1280 frame shown phone-sized): the health and food rows about twice as big, to read
+   as they do on a phone in the hand (Pete: they looked tiny) */
+/* (portrait replays are phone-sized, 405 × 720, so the game's own phone layout fits them as it is) Status there: always open (the
+   score under the floor's name; main.js), bigger, and with room up to the who-plays badge, the only thing at the right (Pete) */
+@media (min-width: 721px) and (min-height: 521px) { body.replay #topbar { zoom: 1.5; } body.replay #boss { top: 92px; } }   /* landscape: who plays (you or the bot) reads at a glance (Pete); the necromancer's bar moved down clear of it (Pete: the badge covered his name) */
+@media (max-width: 720px), (max-height: 520px) {
+  body.replay #info { font-size: 15px; max-width: calc(100vw - 130px); } body.replay #info .plaque b { font-size: 16px; }
+  body.replay #info .plaque { min-height: 32px; } body.replay #info .plaque::after { content: none; }
+  /* Inventory there: the gear and the resources the game keeps behind a tap on Status, always shown, under Status (main.js --gear-y) */
+  body.replay #gear { display: flex; left: 6px; right: auto; top: var(--gear-y, 6px); z-index: 4; }
+  body.replay #res { display: flex; left: 6px; right: auto; top: calc(var(--gear-y, 6px) + 46px); z-index: 4; }
+  body.replay:not(.hide-hotbar) #hud-bottom { gap: 14px; bottom: 14px; }   /* the health readouts clear of the hotbar under them (Pete) */
+  body.replay #info .pips { gap: 2px; } body.replay #info .pips i { width: 3px; height: 13px; } body.replay #info .dial { width: 15px; height: 15px; }
+}
+body.replay #dead .pair, body.replay #dead button { display: none !important; }   /* a death in a replay: the stone and its seed, no buttons */
+body.replay.hide-status #info, body.replay.hide-inv :is(#gear, #res), body.replay.hide-hotbar :is(#hotrow, #slotname), body.replay.hide-bars #bars, body.replay.hide-ach #toasts, body.replay.hide-loot #loot, body.replay.hide-msg #hint { display: none !important; }
+/* a replay's bot brain (replay.html: Show → Brain, and each keyframe's hidden / small / expanded): the readout alone, no buttons or
+   sliders (Pete); the small one wider than the game's, so the brain reads; expanded, the game's own big panel over the picture */
+body.replay.hide-brain #botpanel, body.replay.brain-off #botpanel { display: none !important; }
+body.replay #botpanel .head-btns, body.replay #botpanel .pace, body.replay #botpanel .st, body.replay #botpanel > button { display: none !important; }
+body.replay #botpanel:not(.big):not(.folded) { width: 340px; }   /* (a phone's small brain is the game's folded one, beside the health) */
+body.replay #botpanel.folded:not(.tiny) { width: min(52vw, 340px); }   /* (that one bigger than the game's 220 px: Pete) */
+body.replay #botpanel:not(.big):not(.folded) .brain-box, body.replay #botpanel:not(.big):not(.folded) canvas.brain { width: 100% !important; height: auto !important; }
+/* ?replay&clean (replay.html: a recording as a backdrop): only the world, none of the HUD or buttons */
+body.clean :is(#topbar, #looks, .mem, #cross, #info, #gear, #res, #toasts, #botpanel, #hint, #boss, #mload, #swipe, #btn-pads, #touch, #hud-bottom, #start, #loading) { display: none !important; }
+#btn-rec.on svg { animation: recblink 1s steps(1) infinite; }       /* recording (record.js): the dot blinks */
+@keyframes recblink { 50% { opacity: .25; } }
+canvas#view { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#tpad, #tuse { position: fixed; bottom: calc(var(--touch-y, 124px) + var(--lift, 0px)); z-index: 5; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#tpad { left: 10px; display: grid; grid-template: repeat(3, 52px) / repeat(3, 52px);   /* a 160 px pad */ gap: 2px; }
+#tpad .slot, #tuse { width: auto; height: auto; color: #fff; opacity: .8; }
+#tpad .slot.on, #tuse.on { opacity: 1; border-color: #fff; background: rgba(255,255,255,.3); }
+/* One-handed portrait mode (body.unified, Pete): each arrow has a second, outer key: held, you turn that way and Use there, hitting
+   whatever is in the way, and step on when it's clear. Only in that layout: the corner layouts keep their plain arrows */
+#tpad .dig { display: none; } #tpad .dig.on { background: rgba(255,255,255,.45); color: var(--hi); opacity: 1; }
+#tuse { right: 14px; bottom: calc(var(--touch-y, 124px) + 34px + var(--lift, 0px)); width: 92px;   /* level with the pad's middle: (160 - 92) / 2 up */
+  height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; }
+#tuse img { width: 48px; height: 48px; image-rendering: pixelated; }
+/* Sleep, under Use (its own fresh tap: a finger on Use never slides onto it); the Zzz beside the bolts steps aside for it */
+#tsleep { position: fixed; right: 14px; bottom: calc(var(--touch-y, 124px) + 4px + var(--lift, 0px)); z-index: 5; width: 92px; height: 26px; display: grid; place-items: center;
+  font-size: 12px; color: #cfe0ff; opacity: .8; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#tsleep.on { opacity: 1; animation: zzz 1.2s ease-in-out infinite; }
+#tsleep .ask-l { display: none; } #tsleep.asking .zzz { display: none; } #tsleep.asking .ask-l { display: inline; }   /* a tap shows how: hold it */
+#tsleep.asking { width: auto; min-width: 92px; padding: 0 8px; white-space: nowrap; }
+/* held: a bar fills across it for the second it takes to fall asleep; let go early and it drains away */
+#tsleep { overflow: hidden; } #tsleep span { position: relative; }
+#tsleep::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(140,160,255,.55); transition: width .2s; }
+#tsleep.hold { opacity: 1; border-color: #fff; } #tsleep.hold::before { width: 100%; transition: width 1s linear; }
+body.touch .bar .zzz { display: none; }
+#tuse img:not([src]) { display: none; }
+/* Use and Sleep (Pete): labels in the pixel font, on a dark plate with a shadow, so they read over sand and snow too */
+#tuse, #tsleep { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; -webkit-font-smoothing: none; background: rgba(0,0,0,.5); text-shadow: 2px 2px 0 #000; }
+#tpad .slot { background: rgba(0,0,0,.5); }   /* the arrows on the same dark backing as Zzz and Use (Pete); pressed, they still light up (.on) */
+#tuse.on { background: rgba(60,60,60,.7); }
+/* an option with a note under its title (Pete): the box stays on the title's line, the note wraps beside it, under the title */
+label:has(> span > small.optnote) { flex-wrap: nowrap !important; align-items: flex-start !important; } label:has(> span > small.optnote) > span { flex: 1; min-width: 0; }
+label:has(> span > small.optnote) > input[type=checkbox] { flex: none; margin-top: 4px; }
+/* the line at the bottom (hints, "Can't place on a mob") and the selected slot's name: pixel font, a black outline, the hint on a plate */
+/* the victory (main.js startVictory): over the world, sparks behind; the portal button once the portal is open; a white flash going through */
+#victory { position: fixed; inset: 0; z-index: 45; display: none; pointer-events: none; }
+#victory.on { display: block; }
+#victory-sparks { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+#victory .vbox { position: absolute; left: 50%; top: 54px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: calc(100vw - 24px);   /* small, up top, under the boss bar's place: the arena stays in view (Pete) */
+  animation: vin .7s cubic-bezier(.2,1.5,.4,1) both; filter: drop-shadow(0 0 18px rgba(170,80,255,.6)); }   /* a purple glow, like the sparks (Pete) */
+#victory-sub { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#victory .vflash { position: absolute; inset: 0; background: #c8fff0; opacity: 0; transition: opacity .6s; }
+#victory.going .vflash { opacity: 1; }
+/* the score stays up while you're in the Graveyard (Pete); VICTORY and "The Necromancer is dead" under it fade */
+#victory-title, #victory-sub, #victory-sparks { transition: opacity .8s; } #victory.fade #victory-title, #victory.fade #victory-sub, #victory.fade #victory-sparks { opacity: 0; }   /* the words fade (sooner once you move) */
+@keyframes vin { 0% { transform: translateX(-50%) scale(.2); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+#hint, #slotname { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; -webkit-font-smoothing: none; text-shadow: -2px 0 #000, 2px 0 #000, 0 -2px #000, 0 2px #000, 2px 2px 0 #000; }
+#hint:not(:empty) { background: rgba(0,0,0,.5); padding: 2px 10px; }
+/* the Graveyard's boss bar (hud.js, boss): under the top bar, the pixel font; bright and blinking while he can be hit */
+#boss { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); z-index: 4; display: none; flex-direction: column; align-items: center; gap: 4px;
+  pointer-events: none; font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; -webkit-font-smoothing: none; color: #e6d0f0;
+  text-shadow: -2px 0 #000, 2px 0 #000, 0 -2px #000, 0 2px #000, 2px 2px 0 #000; white-space: nowrap; }
+#boss.on { display: flex; }
+#boss .segs { display: flex; gap: 3px; padding: 3px; background: rgba(0,0,0,.65); border: 2px solid #000; box-shadow: inset 0 0 0 2px #4a3a55; }
+#boss .segs i { width: 30px; height: 12px; background: #1e0e24; }
+#boss .segs i.full { background: #a040e0; box-shadow: inset 0 3px 0 #d090ff, inset 0 -3px 0 #6a1a9a; }
+#boss .st { font-size: 14px; color: #bfa8cc; }
+#boss.open .segs { box-shadow: inset 0 0 0 2px #fff; } #boss.open .st { color: #d68cff; animation: bossblink .8s steps(2) infinite; }   /* vulnerable: bright violet, blinking (Pete: purple, not yellow) */
+@keyframes bossblink { 50% { opacity: .35; } }
+@media (max-width: 720px) { #boss .segs i { width: 22px; } }
+/* a phone: messages near the top, a little clear of the top bar (Pete), never down among the touch controls (Pete); long ones wrap */
+@media (max-width: 720px), (max-height: 520px) {
+  #hint { top: 66px; bottom: auto; white-space: normal; width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; }
+}
+#touch img, #touch svg, #touch span { pointer-events: none; -webkit-user-drag: none; }   /* iOS: a press on a picture would start an image drag and be lost; the button takes it */
+/* the pad's middle: a second Use, for the left thumb (landscape only; upright, the centered layout puts Use itself there) */
+#tpad .use-mid { display: none; } #tpad .use-mid img { width: 30px; height: 30px; image-rendering: pixelated; } #tpad .use-mid img:not([src]) { display: none; }
+/* ---------- a phone on its side: the page is made a little taller than the screen and the first swipe up scrolls it, which is
+   what makes Safari (and Chrome) fold their bars away; the game itself stays fixed to the screen. main.js sets html.tall / html.full ---------- */
+html.tall, html.tall body { height: auto; overflow: visible; }
+html.tall body { min-height: calc(100vh + 160px); }
+html.tall canvas#view { position: fixed; left: 0; top: 0; width: 100vw; height: 100%; }
+#swipe { display: none; position: fixed; inset: 0; z-index: 60; place-items: center; background: rgba(0,0,0,.72); touch-action: pan-y; text-align: center; }
+html.tall:not(.full) #swipe { display: grid; }
+#swipe div { font-size: 16px; line-height: 1.6; text-shadow: 2px 2px 0 #3f3f3f; }
+#swipe b { display: block; font-size: 34px; animation: swipeup 1.2s ease-in-out infinite; }
+@keyframes swipeup { 0%, 100% { transform: translateY(10px); opacity: .5; } 50% { transform: translateY(-10px); opacity: 1; } }
+/* ---------- an upright phone, centered controls (Settings, on by default: body.unified): the pad in the middle with Use as its
+   center, the down arrow nestled into the gap between the two readouts, Sleep (as Zzz) off to the right ---------- */
+.phone-only { display: none; }
+body.touch #settings .settings label.no-touch { display: none; }   /* mouse-only options */
+#settings .settings label.touch-only { display: none; } body.touch #settings .settings label.touch-only { display: flex; }   /* only on a touch screen (over the labels' own display: flex) */
+@media (max-width: 720px), (max-height: 520px) { #settings .phone-only { display: block; } }
+@media (max-width: 720px), (max-height: 520px) { #settings .settings label.touch-only { display: flex; } }
+@media (max-width: 720px), (max-height: 520px) { #settings .wide-only { display: none; } }
+/* a phone upright with the touch controls up: the bottom line sits above them (never behind the pad), wrapping to fit (Pete) */
+   /* a phone: "+ Add agent" (Pete) */   /* a phone-sized screen shows the touch options too, even before a touch has marked it one (Pete) */
+@media (max-width: 720px) and (orientation: portrait) {
+  body.unified { --lift: max(0px, var(--pad-lift, 0px)); } body:not(.unified) { --lift: max(-30px, var(--pad-lift, 0px)); }   /* Controls height down: never onto the hotbar (one-handed: already just above it) */
+  body.unified #touch #tpad { left: 50%; transform: translateX(-50%); bottom: calc(100px + var(--lift, 0px)); grid-template: 44px 60px 60px 60px 44px / 44px 60px 60px 60px 44px; }   /* 60 px keys, each with its 44 px outer key; the foot clear of the hearts and food */
+  body.unified #touch #tpad [data-k="KeyW"] { grid-area: 2/3 !important; } body.unified #touch #tpad [data-k="KeyA"] { grid-area: 3/2 !important; }
+  body.unified #touch #tpad [data-k="KeyD"] { grid-area: 3/4 !important; } body.unified #touch #tpad [data-k="KeyS"] { grid-area: 4/3 !important; }
+  body.unified #touch #tpad .use-mid { grid-area: 3/3 !important; } body.unified #touch #tpad .dig { display: grid; place-items: center; }
+  body.unified #touch #tuse { right: auto; left: 50%; transform: translateX(-50%); bottom: calc(208px + var(--lift, 0px)); width: 60px; height: 60px; }   /* the middle cell: the pad's middle (100 + 276 / 2) less half a key */
+  body.unified #touch #tuse img { width: 40px; height: 40px; } body.unified #touch #tuse span { display: none; }
+  body.unified #touch #tsleep { right: 14px; bottom: calc(316px + var(--lift, 0px)); width: 60px; height: 60px; font-size: 16px; }   /* the pad's empty top-right corner, clear of the right outer key */
+  /* Arrows act ahead (on): the arrows hit what's in front themselves, so no outer keys: the plain 3 x 3 pad, placed as before them */
+  body.unified.autodig #touch #tpad { bottom: calc(56px + var(--lift, 0px)); grid-template: repeat(3, 60px) / repeat(3, 60px); } body.unified.autodig #touch #tpad .dig { display: none; }
+  body.unified.autodig #touch #tpad [data-k="KeyW"] { grid-area: 1/2 !important; } body.unified.autodig #touch #tpad [data-k="KeyA"] { grid-area: 2/1 !important; }
+  body.unified.autodig #touch #tpad [data-k="KeyD"] { grid-area: 2/3 !important; } body.unified.autodig #touch #tpad [data-k="KeyS"] { grid-area: 3/2 !important; }
+  body.unified.autodig #touch #tpad .use-mid { grid-area: 2/2 !important; }
+  body:not(.unified) #touch #tsleep { bottom: calc(84px + var(--lift, 0px)); }   /* the corner pad upright: Zzz low on the right, over the food, its mirror (the touch-controls button) under the pad; all lifted by Controls height */
+  body:not(.unified) #touch #tpad { bottom: calc(var(--touch-y, 124px) + var(--lift, 0px)); } body:not(.unified) #touch #tuse { bottom: calc(var(--touch-y, 124px) + 34px + var(--lift, 0px)); }
+  body.unified.autodig #touch #tuse { bottom: calc(118px + var(--lift, 0px)); } body.unified.autodig #touch #tsleep { bottom: calc(118px + var(--lift, 0px)); }
+  body.unified.autodig #slotname { bottom: calc(248px + var(--lift, 0px)); }
+  body.unified #touch #tsleep.asking { width: 60px; min-width: 0; padding: 0 2px; white-space: normal; font-size: 12px; line-height: 1.25; text-align: center; }
+  body.unified #slotname { position: fixed; left: 0; right: 0; bottom: calc(384px + var(--lift, 0px)); text-align: center; }   /* above the pad */
+}
+/* Settings, Touch controls off: no pad, Use or Sleep (taps and drags on the view still play); the Zzz by the bolts comes back */
+body.nopad #touch { display: none !important; }
+body.nopad .bar .zzz { display: flex; }
+/* on its side the Zzz key stays where it is with the pad hidden too (Pete): the pad and Use go, Zzz doesn't; no Zzz by the bars */
+@media (max-height: 520px) and (orientation: landscape) {
+  body.nopad:not(:has(.screen.on)):not(:has(#botpanel[style*="block"])) #touch { display: block !important; }
+  body.nopad #touch > :not(#tsleep) { display: none !important; } body.nopad .bar .zzz { display: none !important; }
+}
+body.nopad #slotname { position: static !important; }   /* back over the hotbar: no pad to clear */
+/* on a phone, with no pad: Zzz sits above the food (Pete: the food and bolt rows grow at later levels and would run into it beside
+   the bolts), the touch-controls button its mirror above the hearts; the bars' rows are one icon tall each, so 200% clears the food row */
+@media (max-width: 720px), (max-height: 520px) {
+  body.nopad .bar .zzz { position: absolute; right: 0; bottom: calc(200% + 8px); top: auto; margin: 0; width: 44px; height: 28px; justify-content: center; }
+}
+/* the touch controls, hidden or shown (Pete): the same switch as Settings' Touch controls; main.js places it as Zzz's mirror image
+   (left for right, the same size: small over the hearts with no pad, the square beside the pad with it) */
+#btn-pads { display: none; position: fixed; right: 6px; bottom: 80px; z-index: 6; width: 36px; height: 28px; padding: 0; place-items: center; cursor: pointer;
+  background: rgba(0,0,0,.5); border: 2px solid #8b8b8b; color: #fff; opacity: .8; touch-action: manipulation; box-sizing: border-box; }
+#btn-pads svg { height: min(32px, max(18px, 70%)); width: auto; aspect-ratio: 1; }   /* grows with a square key, never past a short one's height (Pete) */
+#btn-pads .show { display: none; } body.nopad #btn-pads .show { display: block; } body.nopad #btn-pads .hide { display: none; }
+body.touch #btn-pads { display: grid; } @media (max-width: 720px), (max-height: 520px) { #btn-pads { display: grid; } }
+@media (max-height: 520px) and (orientation: landscape) { #btn-pads { bottom: auto; top: 44px; right: 4px; } }   /* on its side the bottom right is full (the …, Zzz): under the top bar's right end */
+body:has(.screen.on) #btn-pads, body:has(#botpanel[style*="block"]) #btn-pads { display: none !important; }
+/* the recipe card's button when it can be done: bright green (laser: a lit red; phosphor: lit green) */
+#btn-retry, #panel .card .go:not(:disabled) { background: #3c8a27; box-shadow: inset 2px 2px 0 #7bd459, inset -2px -3px 0 #1f5a12; }
+#btn-retry:hover, #panel .card .go:not(:disabled):hover { background: #4aa232; box-shadow: inset 2px 2px 0 #96e676, inset -2px -3px 0 #24691a; }
+/* a bot's model downloading: how far it has got (main.js, from agent.js's cx-model-progress) */
+#mload { position: fixed; left: 50%; top: 72px; transform: translateX(-50%); z-index: 32; display: none; min-width: 240px; max-width: calc(100vw - 24px); padding: 6px 12px;
+  background: rgba(0,0,0,.72); border: 2px solid #555; pointer-events: none; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: none; }   /* the pixel font, clear of the top bar (Pete) */
+#mload .bar { height: 6px; margin-top: 5px; background: #333; overflow: hidden; }
+#mload .bar i { display: block; height: 100%; width: 40%; background: var(--hi); animation: mshimmer 1.3s ease-in-out infinite; }   /* no count: it sweeps */
+@keyframes mshimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+#btn-top-full { display: none !important; } html.tall #btn-top-full { display: grid !important; } @media (max-height: 520px) and (orientation: landscape) { #btn-top-full { display: grid !important; } }   /* on its side even with no touch, e.g. a desktop preview (Pete) */
+#btn-top-full.loose { position: fixed; z-index: 6; margin: 0; padding: 0; place-items: center; box-sizing: border-box; background: rgba(0,0,0,.5); border: 2px solid #8b8b8b; opacity: .8; }   /* on its side: by the touch-controls button (main.js placeFullBtn) */   /* a phone on its side: the top bar's full screen button folds the browser bars again (Pete) */
+/* Settings' Agent tab: the agents as a list to pick from (the picked one plays when you let it), and a box for your own */
+#settings .spage[hidden] { display: none; }   /* (over .settings' own display: flex) */
+/* Gameplay's own tabs (Click, Bump, Turn, View; Pete 6d69): smaller, under the main row; a touch screen or a phone-sized one has no
+   tabs there and lists every switch, as before */
+#settings .sub { display: contents; } #settings .sub[hidden] { display: none; }
+#settings .subtabs { margin: 0 0 4px; padding-bottom: 6px; align-self: stretch; } #settings .subtabs .tab { font-size: 13px; padding: 3px 5px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }   /* its line as thick as the tabs' above, and right across (Pete) */
+#settings .subtabs .tab svg { width: 16px; height: 16px; flex: none; }   /* a pixel icon each: a pointer, a push into a block, a screen, an eye, a bird, a bell (Pete) */
+#btn-settings-close { display: none; }   /* no Back: the X and a click off the window close Settings (Pete); its handler stays, they call it */
+body.touch #settings .subtabs { display: none; } body.touch #settings .sub[hidden] { display: contents; }
+@media (max-width: 720px), (max-height: 520px) { #settings .subtabs { display: none; } #settings .sub[hidden] { display: contents; } }
+/* there instead, each group under its tab's name and icon as a heading (Pete), and the mouse-only switches gone (as on a touch screen) */
+#settings .subhead { display: none; }
+body.touch #settings .subhead { display: flex; }
+@media (max-width: 720px), (max-height: 520px) { #settings .subhead { display: flex; } #settings .settings label.no-touch { display: none; } }
+#settings .subhead { align-self: stretch; align-items: center; gap: 8px; margin: 10px 0 0; padding-bottom: 4px; border-bottom: 2px solid rgba(255,255,255,.25);
+  font-size: 15px; color: var(--hi); text-shadow: 2px 2px 0 #3f3f00; }
+#settings .subtabs + .sub .subhead { margin-top: 2px; }
+#settings .subhead svg { width: 16px; height: 16px; flex: none; }
+#settings .agents { display: flex; flex-direction: column; gap: 4px; width: 100%; max-height: 196px; overflow-y: auto; flex: none; }   /* about five agents, then it scrolls */
+#settings .win { max-height: 88vh; overflow-y: auto; }   /* and the window itself never runs off the screen */
+@media (min-width: 721px) and (min-height: 521px) { #settings .win { width: min(640px, calc(100vw - 16px)); height: min(720px, 88vh); } }   /* desktop: one size whichever tab or sub-tab is open, the longest scrolling inside (Pete: it changed size from tab to tab) */
+#settings .agents button { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 13px; color: #fff; cursor: pointer;
+  background: rgba(255,255,255,.06); border: 2px solid #444; padding: 5px 8px; }
+#settings .agents button.on { border-color: var(--hi); background: rgba(255,255,128,.08); } #settings .agents button:disabled { opacity: .45; cursor: default; }
+#settings .agents b { white-space: nowrap; flex: none; }   /* the name never wraps (Pete); the note beside it gives way, cut off with … */
+#settings .agents small { color: #aaa; font-size: 11px; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #settings .agents .rm { color: #aaa; padding: 0 4px; }
+#settings .agents .score { margin-left: auto; color: #ffe680; font-size: 12px; white-space: nowrap; }   /* % of Craftax it completes, at the right */
+#settings .agents .score + .rm { margin-left: 0; } #settings .agents small + .rm { margin-left: auto; }
+#settings .addagent { display: flex; gap: 8px; width: 100%; } #settings .addagent input { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 4px 6px; background: #111; color: #fff; border: 2px solid #555; }
+#settings .agents .err { color: #ff8070; font-size: 12px; }
+#settings #set-agent-box { width: 100%; } #settings #set-agent-box[hidden] { display: none; } #settings #set-agent-open { min-width: 0; } #settings #set-agent-open[hidden] { display: none; }
+#settings .setbtns { display: flex; gap: 10px; margin-top: 16px; } #settings .setbtns .mc { min-width: 0; flex: 1; } #settings .setbtns .mc:only-child, #settings .setbtns .mc:first-child:has(+ [hidden]) { flex: none; min-width: 300px; }
+/* checkboxes in the pixel style: a sunken square slot like the hotbar's, a blocky white tick (with its drop shadow) when on */
+input[type="checkbox"] { -webkit-appearance: none; appearance: none; flex: none; width: 20px; height: 20px; margin: 0; cursor: pointer;
+  background: #2a2a2a; border: 2px solid; border-color: #1a1a1a #9a9a9a #9a9a9a #1a1a1a; border-radius: 0; image-rendering: pixelated; }
+input[type="checkbox"]:checked { background: #3c8a27 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath d='M7 1h1v2H7zM6 3h1v1H6zM5 4h1v1H5zM1 4h1v1H1zM2 5h1v1H2zM4 5h1v1H4zM3 6h1v1H3z' fill='%23fff'/%3E%3Cpath d='M8 2h1v2H8zM7 4h1v1H7zM6 5h1v1H6zM2 6h1v1H2zM5 6h1v1H5zM4 7h1v1H4zM3 7h1v1H3z' fill='%233f3f3f'/%3E%3C/svg%3E") center / 14px 14px no-repeat; border-color: #1f5214 #7bd459 #7bd459 #1f5214; }
+input[type="checkbox"]:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
+/* Settings' notes: a short list, each line led by the game's own icon (the plaque's sun, the HUD's water drop) */
+#settings .srule { border: 0; border-top: 1px solid currentColor; opacity: .25; margin: 4px 0; width: 100%; }   /* a little line before Ray tracing (Pete) */
+#settings .snote { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #ccc; }
+#settings .snote li { display: flex; align-items: center; gap: 10px; }
+#settings .snote .ico { width: 18px; height: 18px; flex: none; image-rendering: pixelated; }
+#settings .snote .ico.sun { border-radius: 50%; background: radial-gradient(circle, #fff6b0 30%, #ffc830 70%); box-shadow: 0 0 6px #ffd84a; width: 14px; height: 14px; margin: 0 2px; }
+/* Settings and Controls in the game's own 5x7 pixel font (public/fonts/craftax-pixel.woff, built from js/pixeltitle.ts by tools/make_pixel_font.py).
+   Its pixel is 1/8 em: 16px text draws 2px pixels, so every size here is a multiple of 8 and stays crisp. */
+@font-face { font-family: "Craftax Pixel"; src: url("/fonts/craftax-pixel.woff") format("woff"); font-display: block; }
+#settings .win, #help .win { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; line-height: 1.75; -webkit-font-smoothing: none; font-smooth: never; }
+/* the E screen in the pixel font too (Pete), every line at its one crisp size (16 px), never bolded (a smeared pixel font) */
+#panel .win { font-family: "Craftax Pixel", "Courier New", monospace; -webkit-font-smoothing: none; font-smooth: never; }
+#panel .win :is(h2, .card .info b, .card small, .card small em, .card .or, .recipe, .recipe small, .mc) { font-family: inherit; font-size: 16px; font-weight: normal; line-height: 1.3; }
+#settings select, #settings .tab, #help .tab, #help kbd, #settings .agents button, #help .hnote { font-size: 16px; }
+#settings .agents small { font-size: 12px; }
+/* Research in the pixel font as well (Pete: the default now, was the ?pixelresearch trial); sizes on the 8 px grid so the font pixels stay whole */
+#research .win { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; line-height: 1.75; -webkit-font-smoothing: none; }
+/* the hierarchy (Pete): an entry's name 16 px and white, its description 14 px and softer, the detail line (authors, size, score) 12 px */
+#research .entry b { font-size: 16px; font-weight: normal; } #research .compl big { font-size: 24px; font-weight: normal; }
+#research .entry p:not(.meta), #research .entry li { font-size: 14px; }
+#research .meta, #research code, #research .compl { font-size: 12px; }
+#settings .agents small i { font-style: normal; } #settings .agents small.run { text-overflow: clip; } #settings .agents small.run i { display: inline-block; animation: agent-marquee var(--t) linear infinite; }
+@keyframes agent-marquee { 0%, 12% { transform: translateX(0); } 50%, 62% { transform: translateX(var(--dx)); } 100% { transform: translateX(0); } }   /* rest, scroll to the end, rest, back */
+@media (prefers-reduced-motion: reduce) { #settings .agents small.run i { animation: none; } #settings .agents small.run { text-overflow: ellipsis; } }
+/* Add your agent: the same pixel font through the whole window (its fields, notes, buttons and the entry to copy) */
+.ask.agentpop .menu { font-family: "Craftax Pixel", "Courier New", monospace; -webkit-font-smoothing: none; }
+.agentpop .fld, .agentpop .note, .agentpop input, .agentpop .mc, .agentpop .err { font-size: 16px; } .agentpop .note { line-height: 1.75; }
+.agentpop textarea { font-size: 12px; line-height: 1.5; } .agentpop .fld { grid-template-columns: 136px 1fr; }   /* "ONNX link *" on one line */   /* an agent's description, a step under its name (1.5 px font pixels: whole device pixels on a 2x screen) */
+/* My Worlds and the ask windows (Forget this world?, End this world?...) in the pixel font too (Pete): every size on the 8 px grid, never bold */
+#saves .menu, .ask:not(.agentpop) .menu { font-family: "Craftax Pixel", "Courier New", monospace; -webkit-font-smoothing: none; font-smooth: never; }
+:is(#saves, .ask:not(.agentpop)) .menu :is(h1, b, .mc, input) { font-family: inherit; font-weight: normal; }
+:is(#saves, .ask:not(.agentpop)) .menu h1 { font-size: 32px !important; }
+:is(#saves, .ask:not(.agentpop)) .menu :is(p, .mc, input, .srow b, .srow .seed, .srow .sline .seed) { font-size: 16px !important; line-height: 1.5; }
+#saves .srow :is(.st, .url, .tag, .mc.copy) { font-size: 12px !important; line-height: 1.5; }
+/* the thumbnail, the text and Open / Play at the row's top (Pete); the seed wraps under "Seed" rather than run under Open on a phone */
+#saves .srow { align-items: flex-start; } #saves .srow .acts { flex: none; } #saves .srow .seed { white-space: normal; overflow-wrap: anywhere; }
+#help kbd { line-height: 1.5; }
+#settings .targetrow { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; } #settings .targetrow label { display: flex; align-items: center; gap: 10px; }   /* Move to target, and Spam target beside it (Pete) */
+#settings :is(.caprow, .duorow) .rowhead { display: flex; align-items: center; gap: 24px; } #settings :is(.caprow, .duorow) label { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+#settings :is(.caprow, .duorow) > .optnote { padding-left: 30px; }   /* two switches on one line, the note under both (Pete) */   /* Capture the mouse, Invert on its first line (Pete) */
+body.touch #settings .caprow, body.touch #settings .optnote.no-touch { display: none; } @media (max-width: 720px), (max-height: 520px) { #settings .caprow, #settings .optnote.no-touch { display: none; } }
+#settings .slide .v { white-space: nowrap; }   /* a value keeps its unit */
+#settings .slide > span:first-child { min-width: 11em; }   /* every slider on a tab starts at the same place (Pete) */
+@media (min-width: 481px) { #settings [data-page=speed] .slide { flex-wrap: nowrap; } #settings [data-page=speed] .slide > span:first-child { min-width: 9em; }   /* Speed: name, slider and value on one line (Pete) */
+  #settings [data-page=speed] .slide input[type=range] { width: 180px; flex: 0 1 180px; min-width: 80px; } }   /* (a phone: the name above, as every tab) */
+@media (max-width: 480px) { #settings .slide { width: 100%; } #settings .slide > span:first-child { flex-basis: 100%; } #settings .slide input[type=range] { flex: 1 1 0; width: auto; min-width: 0; } }   /* phone: the name above, slider and value share the next line */
+#settings .settings label { max-width: 100%; } #settings select { min-width: 0; text-overflow: ellipsis; }   /* the wider font: a long option ends in … inside the window, not past it */
+#settings .tab .narrow { display: none; }
+@media (max-width: 480px) { #settings .tab .wide { display: none; } #settings .tab .narrow { display: inline; } }   /* phones: Gameplay is Play, so all four tabs clear the close box (Pete) */
+@media (max-width: 480px) { #settings .tab, #help .tab { padding: 6px 8px; } #help table td:first-child { padding-right: 10px; } }   /* the three tabs clear the close box */
+/* on a phone a setting's note flows as one paragraph: its desktop line break (two neat lines) would land mid-line on a narrow screen */
+body.touch small.optnote br { display: none; }
+@media (max-width: 720px), (max-height: 520px) { small.optnote br { display: none; } }
+/* a tablet (Pete: an iPad, an iPad mini, an open foldable): bigger keys, further in from the sides, where thumbs rest on a big screen.
+   (min 600 px both ways: no phone; not 520/521, which src/ui/side.ts rewrites) */
+@media (min-width: 600px) and (min-height: 600px) {
+  body { --lift: clamp(-90px, var(--pad-lift, 0px), 160px); }   /* Controls height on a tablet, either way up */
+  body.touch #touch #tpad { grid-template: repeat(3, 76px) / repeat(3, 76px); gap: 3px; }
+  body.touch #touch #tuse { width: 112px; height: 112px; } body.touch #touch #tuse img { width: 60px; height: 60px; }
+  body.touch #touch #tpad .use-mid img { width: 40px; height: 40px; }
+}
+@media (orientation: landscape) and (min-width: 600px) and (min-height: 600px) {
+  body.touch #touch #tpad { left: 110px; top: calc(50% + 60px - var(--lift, 0px)); } body.touch #touch #tuse { right: 100px; top: calc(50% + 70px - var(--lift, 0px)); }   /* a little below the middle (Pete), where hands rest on a tablet */
+  body.touch #looks { gap: 10px; }   /* the views, the looks and the theme as far apart as upright (Pete) */
+}
+@media (orientation: portrait) and (min-width: 600px) and (min-height: 600px) { body.touch #touch #tpad { left: 72px; top: calc(66% + 28px - var(--lift, 0px)); } body.touch #touch #tuse { right: 36px; top: calc(66% + 38px - var(--lift, 0px)); } }   /* Zzz under Use, as wide (its mirror, the touch-controls button, under the pad) */
+#looks.short #seg-theme, #looks.short #seg-art, body.short-side :is(#info, #gear, #res) { display: none !important; }   /* on its side, a screen too short for the whole column: the theme, the looks and the floor's plaque go (Pete; layout.ts placeLooks) */
+@media (max-width: 720px) and (orientation: portrait) { #looks { gap: 10px; } }   /* a phone upright: the views, the looks and the theme a little further apart (Pete) */
+@media (orientation: portrait) and (min-width: 600px) and (min-height: 600px) {
+  body.touch #looks { gap: 10px; }
+  /* (Pete) the hearts and food twice a phone's size, further from the hotbar; the hotbar and Zzz up off the home bar */
+  body.touch .bar img { width: max(8px, min(28px, calc((50vw - 26px) / var(--n, 9) - 2px))); }
+  body.touch #bars { margin-bottom: 10px; }
+  body.touch #hud-bottom { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  body.touch #touch #tsleep { bottom: calc(16px + env(safe-area-inset-bottom)); }
+}   /* a tablet upright (the phone's layout, its column down the left): the views, the looks and the theme a little apart (Pete) */

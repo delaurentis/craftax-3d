@@ -1,0 +1,75 @@
+/* The laser look: the HUD, menus and windows as red laser lines on dark. The line looks' shared rules are in
+   src/looks/shared/outline.css (body.outline), in this ink; here, laser's own. Loaded after game, menus, phone, color, outline (index.html). */
+/* the ink (outline.css): the lines, a brighter red, frames, the plates' dark fill and its hover, the glow, a window's box glow, a slot
+   being docked, the icons' tint, the lines' rgb (for its alpha variants) */
+body.laser { --line: #ff2a18; --line-hi: #ff9a80; --line-frame: #ff2a18; --line-frame-soft: rgba(255,42,24,.55); --line-fill: rgba(74,39,36,.82); --line-fill-hi: rgba(96,40,34,.9); --line-glow: 0 0 4px rgba(255,42,24,.9), 0 0 10px rgba(255,42,24,.45); --line-box: 0 0 8px rgba(255,42,24,.5); --line-dock: #2a0805; --line-tint: url(#laser-tint); --line-rgb: 255, 42, 24; }
+/* ---------- the game page: the HUD, screens, E screen, bot panel (beside game.css) ---------- */
+body.laser #hover2d { background: rgba(255,42,24,.2); box-shadow: inset 0 0 0 2px rgba(255,42,24,.7); }   /* laser 2D: the box in the laser's red (Pete) */
+/* laser mode: the stone in dark reds with a glowing red outline, on red grass (phosphor's own: phosphor.css) */
+body.laser .tomb { filter: drop-shadow(2px 0 0 #ff2a18) drop-shadow(-2px 0 0 #ff2a18) drop-shadow(0 -2px 0 #ff2a18) drop-shadow(0 0 8px rgba(255,42,24,.6)); }
+body.laser .tomb .stone { filter: sepia(1) saturate(5) hue-rotate(-38deg) brightness(.72); }
+body.laser .tomb .mound { filter: sepia(1) saturate(5) hue-rotate(-38deg) brightness(.8); }
+/* (in the laser and phosphor looks: the box and the words in that look's ink, Pete 341d) */
+body.laser #botpanel .brain-opt { color: #ff7a60; }
+body.laser #botpanel .brain-opt input[type=checkbox]:checked { background: var(--line-fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' shape-rendering='crispEdges'%3E%3Cpath d='M10 0h2v2h-2v2H8v2H6v2H4v2H2V8H0V6h2v2h2V6h2V4h2V2h2z' fill='%23ff2a18'/%3E%3C/svg%3E") no-repeat center; }
+body.laser #botpanel .brain-opt input[type=checkbox]:hover { background-color: var(--line-fill-hi); }
+body.laser .card { border-color: rgba(255,42,24,.6); }
+body.laser .card small { color: #c0503c; }
+/* ---------- the HUD, the menus' windows, Research, the loading bar, the badge (beside menus.css) ---------- */
+/* laser (M): the HUD as red laser lines on dark, icons as glowing red outlines (the #laser-edge SVG filter) */
+body.laser #info b { color: #ff7a60; }
+/* the status panel in laser: red frames, red labels, the depth pips, dial and achievement bar in laser red (nothing grey or yellow) */
+body.laser #info .plaque, body.laser #info .chips, body.laser #info .ach, body.laser #info .banner { box-shadow: 0 0 6px rgba(255,42,24,.4); }
+body.laser #info .day, body.laser #info .chip em, body.laser #info .ach .step { opacity: .75; }
+body.laser #info .pips i { background: rgba(255,42,24,.16); }
+body.laser #info .pips i.here { background: #ff7a60; }
+body.laser #info .dial.sun { background: radial-gradient(circle, #ffb0a0 30%, var(--line) 70%); }
+body.laser #info .dial.moon { background: radial-gradient(circle at 35% 35%, #ffb0a0 35%, #8c1c12 75%); box-shadow: 0 0 4px rgba(255,42,24,.6); }
+body.laser #info .ach .bar { border-color: rgba(255,42,24,.6); }
+body.laser #info .ach .bar i { background: linear-gradient(#ff7a60, var(--line)); }
+body.laser .slot { border-color: rgba(255,42,24,.55); }
+body.laser .slot.sel { outline-color: rgba(255,42,24,.35); box-shadow: 0 0 10px rgba(255,42,24,.8), inset 0 0 6px rgba(255,42,24,.6); }
+body.laser .slot img, body.laser .cell img, body.laser .recipe img { filter: url(#laser-edge); }
+body.laser .cell.pot img { filter: url(#laser-edge); }   /* (over game.css's potion outline, as .cell img was when it read body.laser:not(.phosphor)) */
+body.laser .slot.off img { opacity: .35; filter: url(#laser-edge); }
+body.laser .bar img { filter: drop-shadow(0 0 3px rgba(255,42,24,.8)); }
+body.laser .seg button.on { background: rgba(255,42,24,.5); border-color: #ff6a50; box-shadow: 0 0 14px 2px rgba(255,42,24,.95), inset 0 0 12px rgba(255,120,90,.8); }
+body.laser button.mc:hover:not(:disabled) { box-shadow: 0 0 14px rgba(255,42,24,.8); }
+body.laser #panel .win { box-shadow: 0 0 16px rgba(255,42,24,.6); }
+body.laser .cell { border: 1px solid rgba(255,42,24,.6); }
+body.laser .cell.rcell { border: 1px solid rgba(255,42,24,.6); }   /* (no game.css hover edge: the old body.laser:not(.phosphor) .cell outranked it) */
+body.laser .recipe { border: 1px solid rgba(255,42,24,.6); }
+body.laser .recipe.brk { background: var(--line-fill); }   /* (Break: no game.css pink on hover or focus, as the old body.laser:not(.phosphor) .recipe outranked it) */
+body.laser .recipe small, body.laser .recipe .key { color: #c0503c; }
+body.laser .slot img.lzi, body.laser .slot.off img.lzi, body.laser .cell img.lzi { filter: drop-shadow(0 0 3px rgba(255,42,24,.85)); }
+/* the bot window in laser: a red outline (not grey), the name and the speed / temperature sliders in the laser's red (Pete f444) */
+body.laser #botpanel { box-shadow: 0 0 10px rgba(255,42,24,.45); }
+body.laser #botpanel .head b { color: #ff5a44; text-shadow: none; }   /* (no glow on the name: it blurred it, Pete b91f) */
+body.laser #botpanel .st, body.laser #botpanel .temp { color: #ff7a60; text-shadow: none; }
+body.laser #botpanel input[type=range] { border-color: rgba(255,42,24,.7); }
+body.laser #botpanel input[type=range]::-webkit-slider-thumb { background: #8c1c12; }
+body.laser #botpanel input[type=range]::-moz-range-thumb { background: #8c1c12; }
+/* the Add your agent window in laser: red as the E screen */
+body.laser .ask.agentpop .menu { background: rgba(8,4,4,.94); box-shadow: 0 0 16px rgba(255,42,24,.6); }   /* dark, as laser's windows are (Pete) */
+body.laser .agentpop .fld, body.laser .agentpop .note { color: #ffb4a4; text-shadow: none; }
+body.laser .agentpop .note a { color: #fff; }   /* (Pete: laser red text was too hard to read) */
+body.laser .agentpop .note.list { border-top-color: rgba(255,42,24,.4); }
+body.laser .agentpop input::placeholder { color: rgba(255,150,130,.5); }
+body.laser #help kbd { color: var(--line); box-shadow: inset 2px 2px 0 rgba(255,90,70,.35), inset -2px -3px 0 rgba(0,0,0,.5), 0 2px 0 #2a0604; }
+body.laser #research .cp { background: var(--line-fill); }
+body.laser #research .tab.on, body.laser #help .tab.on, body.laser #settings .tab.on { background: rgba(255,42,24,.3); box-shadow: 0 0 10px rgba(255,42,24,.7); }
+body.laser #research .tab:not(.on), body.laser #help .tab:not(.on), body.laser #settings .tab:not(.on) { box-shadow: none; }   /* (no menus.css hover shadow, as the old
+   body.laser:not(.phosphor) .tab outranked it) */
+body.laser #research .compl big { color: var(--line); text-shadow: var(--line-glow); }
+body.laser .loadbar i { background: repeating-linear-gradient(90deg, #ff2a18 0 10px, #4a0a06 10px 12px); }
+body.laser #settings .plugwin { box-shadow: 0 0 16px rgba(255,42,24,.6); }
+body.laser #settings .plugline input[type=url] { color: var(--line); }
+/* ---------- phones and touch screens (beside phone.css) ---------- */
+body.laser #tsleep::before { background: rgba(255,42,24,.45); }
+body.laser #victory .vbox { filter: drop-shadow(0 0 18px rgba(255,42,24,.6)); }
+body.laser #btn-retry, body.laser #panel .card .go:not(:disabled) { background: #a3211a; color: #fff; box-shadow: 0 0 12px rgba(255,42,24,.8); text-shadow: none; }
+body.laser #settings .agents button { border-color: rgba(255,42,24,.5); }
+body.laser input[type="checkbox"]:checked { background-color: #a3211a; }
+body.laser #settings .snote .ico.sun { background: radial-gradient(circle, #ffb0a0 30%, var(--line) 70%); box-shadow: 0 0 5px var(--line); }
+/* ---------- the simulation's caption (src/looks/phosphor/caption.ts): white with the laser's red glow (Pete e3af) ---------- */
+body.laser #pcap { color: #fff; text-shadow: 0 0 10px rgba(255,42,24,.8), 0 0 2px #ffb4a8; }

@@ -1,0 +1,2 @@
+/* Noir's page rules: the HUD, the looks bar and the windows in black, white and grays, over color's own (noir's classes: color noir). */
+body.noir :is(#topbar, #looks, #info, #res, #hotrow, #slotname, #bars, #hint, #botpanel, #panel, .toast) { filter: grayscale(1) contrast(1.15); }

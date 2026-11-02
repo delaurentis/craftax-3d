@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Craftax Replay</title>
+<!-- A replay (.cxreplay, js/record.js) played back: the game page itself (index.html?replay) at the size it was recorded, scaled to
+     fit, playing the recording's ops and camera. Without ?embed it is the editor (Pete): drag the bar's two ends in to trim it; drop
+     keyframes on the row under it and set the view, look and camera at each with the game's own controls (the camera glides from
+     one to the next); Share (the pixel share icon) saves the file, records a video, gives the embed code, or plays on from here.
+     ?src=<url of a .cxreplay>   load it (else drop one on the page); ?r=<id> (or /r/<id> on playcraftax.com): a shared one
+     ?embed                   the player alone, for another site's iframe: plays, loops, a click pauses
+     &bare                    no controls at all, clicks pass by (a backdrop: playcraftax's 404)
+     &clean                   the game without its HUD and buttons: only the world
+     &fit=cover               fill the page, cropping the recording's edges (default: all of it, letterboxed)
+     &intro=phosphor:2600     the first play opens in that look for that many ms, then the recording's own (the loops after it don't);
+                              the parent page hears { cx: "replay-look", look } as the look in view changes (the 404's caption) -->
+<link rel="stylesheet" href="./src/styles/replay.css">
+</head>
+<body>
+<script>   // (before the first paint: a link to one replay never shows the drop border, even for the moment the module takes to load)
+if (/[?&](src|open|r)=/.test(location.search) || /\/r\/[\w-]{16}\/?$/.test(location.pathname)) document.body.classList.add("arriving");
+</script>
+<div id="main">
+<div id="stage">
+  <iframe id="frame" title="Craftax replay" allow="autoplay; fullscreen"></iframe>
+  <div id="shield" title="Click to play or pause"></div>
+  <button id="edit-replay" title="Make your own copy of this replay and edit it: trims, camera, what shows">✎ Edit replay</button>
+  <div id="nav"><button id="back2" title="Back to your world">◀ Game</button><button id="close" title="Your replays">Replays</button></div>
+  <button id="bigplay" aria-label="Play"><span>Play</span><svg viewBox="0 0 10 12" width="10" height="12" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h2v1h2v1h2v1h2v1h2v4H8v1H6v1H4v1H2v1H0z" fill="#fff"/></svg></button>
+  <div id="secret" aria-live="polite"><span></span></div>
+  <div id="filming" role="status"><span>Making the video…</span><div class="meter"><i></i></div><b>0 %</b><button class="opt-stop">Stop</button></div>
+  <a id="badge" href="#" title="Open Craftax 3D and play the game on from this moment">Play in game <span>· Craftax 3D</span></a>
+  <div id="drop"><b>Drop a Craftax replay here</b><span>a .cxreplay file, or open one below</span><label><button id="pick">Open a file…</button><input id="file" type="file" accept=".cxreplay,.cxrec,.json,application/json,application/gzip" hidden></label><span id="err"></span><div id="kept"></div><button id="back" title="Back to your world">◀ Back to the game</button></div>
+</div>
+<aside id="side" class="edit">
+  <button id="share" class="edit" aria-label="Share" data-tip="Share"><svg viewBox="0 0 20 20" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true"><path d="M9 1h2v1h1v1h1v1h1v2h-2V5h-1v8H9V5H8v1H6V4h1V3h1V2h1z" fill="#ffd84a"/><path d="M3 7h4v2H5v8h10V9h-2V7h4v12H3z" fill="#ddd"/></svg><span>Share</span></button>
+  <h3>Orientation</h3>
+  <div id="orient"><button data-o="landscape" title="16:9"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 5h18v10H1z" fill="#ddd"/><path d="M3 7h14v6H3z" fill="#3a7ab0"/></svg>Landscape</button><button data-o="portrait" title="9:16"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 1h10v18H5z" fill="#ddd"/><path d="M7 3h6v14H7z" fill="#3a7ab0"/></svg>Portrait</button></div>
+  <h3>Show</h3>
+  <label><input type="checkbox" data-show="status" checked> Status</label>
+  <label><input type="checkbox" data-show="inv" checked> Inventory</label>
+  <label><input type="checkbox" data-show="bars" checked> Health</label>
+  <label><input type="checkbox" data-show="hotbar" checked> Hotbar</label>
+  <label><input type="checkbox" data-show="ach" checked> Achievements</label>
+  <label><input type="checkbox" data-show="loot" checked> Treasure</label>
+  <label><input type="checkbox" data-show="msg" checked> Messages</label>
+  <div id="side-theme" hidden><h3>Theme</h3><select id="theme-pick" aria-label="Theme"></select></div>
+  <h3 id="looks-for">View and look</h3>
+  <div id="side-looks"></div>
+  <h3>Agent brain</h3>
+  <div id="brainsize"><button data-b="hidden" aria-label="Brain hidden" data-tip="Hidden" title="Hidden"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h18v14H1z" fill="#ddd"/><path d="M2 4h16v12H2z" fill="#2a3a4a"/><path d="M7 7h6v1h1v4h-1v1H7v-1H6V8h1z" fill="#e88ab0" opacity=".45"/><path d="M4 15h2v-2h2v-2h2V9h2V7h2V5h2v2h-2v2h-2v2h-2v2H8v2H6v2H4z" fill="#ff4a3a"/></svg></button><button data-b="small" aria-label="Brain small" data-tip="Small, in the corner" title="Small, in the corner"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h18v14H1z" fill="#ddd"/><path d="M2 4h16v12H2z" fill="#2a3a4a"/><path d="M12 10h5v5h-5z" fill="#111"/><path d="M13 11h3v1h1v2h-1v1h-3v-1h-1v-2h1z" fill="#e88ab0"/></svg></button><button data-b="big" aria-label="Brain expanded" data-tip="Expanded, over the picture" title="Expanded, over the picture"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h18v14H1z" fill="#ddd"/><path d="M2 4h16v12H2z" fill="#2a3a4a"/><path d="M4 5h12v10H4z" fill="#111"/><path d="M7 6h6v1h2v2h1v3h-1v2h-2v1H7v-1H5v-2H4V9h1V7h2z" fill="#e88ab0"/><path d="M10 7h1v7h-1zM6 9h2v1H6zM12 11h2v1h-2z" fill="#9a3e66"/></svg></button></div>
+</aside>
+</div>
+<div id="bar">
+  <div id="tl"><button id="play" aria-label="Play">▶</button><span id="time">0:00.0 / 0:00.0</span></div>
+  <div id="track"><div class="rail"></div><div class="kept"></div><div class="trim" data-end="in" title="Drag in to trim the start (I)"></div><div class="trim" data-end="out" title="Drag in to trim the end (O)"></div><div class="head"></div></div>
+  <div id="lanetools" class="edit"><button id="keyadd" title="A keyframe at the playhead (K); or click the row">◆ Keyframe</button><div class="zoom"><span>Zoom</span><button id="zoom-out" aria-label="Zoom out" title="Zoom out (−, or the wheel over the bar)">−</button><button id="zoom-in" aria-label="Zoom in" title="Zoom in (+, or the wheel over the bar)">+</button><button id="zoom-fit" title="All of it (0)">Fit</button></div></div>
+  <div id="lane" class="edit" title="Click to drop a keyframe here"><div class="head"></div></div>
+  <div id="right2"><span id="vol"><button id="mute" aria-label="Sound off" data-tip="Sound"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 7h3l4-4h2v14h-2l-4-4H3z" fill="#ddd"/><path class="w" d="M14 7h1v6h-1zM16 5h1v10h-1z" fill="#ddd"/><path class="x" d="M14 7h2v2h-2zM16 9h2v2h-2zM14 11h2v2h-2zM18 7h1v2h-1zM18 11h1v2h-1z" fill="#e83a2a"/></svg></button><input id="volume" type="range" min="0" max="100" value="60" aria-label="Volume"></span><select id="rate" class="edit" aria-label="Speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select><button id="loop" class="edit" aria-label="Loop">Loop</button></div>
+</div>
+<div id="sharepop" role="dialog" aria-label="Share">
+  <div class="win">
+    <h2>Share this recording</h2>
+    <button class="opt" data-do="file"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 3h11l3 3v11H3z" fill="#8aa0c0"/><path d="M6 3h7v5H6z" fill="#ddd"/><path d="M5 11h10v6H5z" fill="#2a2a2a"/></svg><span>Download the replay<small>a .cxreplay, trimmed, with its keyframes</small></span></button>
+    <button class="opt" data-do="shot"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 3h6v2h5v12H2V5h5z" fill="#c6c6c6"/><path d="M8 7h4v1h1v1h1v4h-1v1h-1v1H8v-1H7v-1H6V9h1V8h1z" fill="#3a3a3a"/><rect x="9" y="9" width="2" height="4" fill="#c6c6c6"/><rect x="8" y="10" width="4" height="2" fill="#c6c6c6"/></svg><span>Screenshot<small>this moment, exactly as the frame shows it (what you chose under Show included)</small></span></button>
+    <button class="opt" data-do="video"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 5h11v10H2z" fill="#ddd"/><path d="M13 8l5-3v10l-5-3z" fill="#aaa"/><path d="M4 7h2v2H4z" fill="#e83a2a"/></svg><span>Make a video<small>computes every frame, picture and sound, into an MP4</small></span></button>
+    <button class="opt" data-do="embed"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M6 5h2v2H6v2H4v2h2v2h2v2H6v-2H4v-2H2V9h2V7h2zM12 5h2v2h2v2h2v2h-2v2h-2v2h-2v-2h2v-2h2V9h-2V7h-2z" fill="#4ab0ff"/></svg><span>Put it on the web<small>online: embed code for a page, a link, or an MP4</small></span></button>
+    <button class="opt" data-do="play"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 3h2v1h2v1h2v1h2v1h2v1h2v4h-2v1h-2v1h-2v1H9v1H7v1H5z" fill="#6fbf4a"/></svg><span>Play in game<small>Craftax 3D in a new tab, from this moment</small></span></button>
+    <button class="opt" data-do="publish" disabled style="display:none"><svg viewBox="0 0 20 20" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 2h6v2h2v2h2v8h-2v2h-2v2H7v-2H5v-2H3V6h2V4h2z" fill="#3a7ab0"/><path d="M7 5h3v3H7zM11 10h4v3h-4zM6 11h3v3H6z" fill="#6fbf4a"/></svg><span>Publish to playcraftax<small>coming soon: a link anyone can open</small></span></button>
+    <button id="share-close">Close</button>
+  </div>
+</div>
+<div id="embedpop" role="dialog" aria-label="Put it on the web">
+  <div class="win">
+    <h2>Put it on the web</h2>
+    <div id="embed-wait"><span></span></div>
+    <div id="embed-nohost"><p>This copy can't put replays online. Save the file and drop it on <a id="embed-site" target="_blank" rel="noopener"></a> to get a link and embed code.</p><div class="row"><button id="embed-save">Save the file</button><a id="embed-go" class="btn" target="_blank" rel="noopener"></a><button id="embed-back">Back</button></div></div>
+    <div id="embed-ready">
+      <p class="note" id="embed-where">It's online: anyone with the link or the embed can watch it.</p>
+      <div id="embed-how" role="tablist"><button data-how="code" class="on">Embed code</button><button data-how="link">Link</button><button data-how="mp4">MP4 video</button></div>
+      <div data-pane="code"><div class="tools"><div id="embed-aspect"><button data-a="16x9" class="on">16:9</button><button data-a="9x16">9:16</button><button data-a="adaptive" title="fills whatever space the page gives it">Adaptive</button></div><button class="copy">Copy</button></div>
+        <textarea id="embed-code" readonly spellcheck="false"></textarea><p class="note">Paste it where the player should go. It plays by itself, silent, looping; a click pauses it.</p></div>
+      <div data-pane="link"><div class="tools"><span class="lead">A link to watch it, for anyone</span><button id="embed-open">Open</button><button class="copy">Copy</button></div><textarea id="embed-link" readonly spellcheck="false"></textarea><p class="note">Send it or post it: the replay plays on its own page, and Edit replay there lets them make their own version.</p>
+        <p class="note">Serving the replay yourself? Use this link format: <code id="embed-long"></code></p></div>
+      <div data-pane="mp4"><p class="note">A video file to post anywhere that takes video: every frame computed, picture and sound.</p></div>
+    </div>
+    <div class="row"><button id="embed-retry">Try again</button><span id="embed-copied" aria-live="polite"></span><button id="embed-mp4">Make the MP4</button><button id="embed-done">Done</button></div>
+  </div>
+</div>
+<script type="module" src="./js/replay-page.ts"></script>
+</body>
+</html>

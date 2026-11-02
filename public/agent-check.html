@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Check</title>
+<!-- A test page (Pete: the ONNX agents ran out of memory on an iPhone): onnxruntime-web and the agents alone, no game, each step shown
+     as it passes or fails, at each memory cap the runtime may reserve (agent-worker.ts ORT_MAX_PAGES; tools/runtime-files.ts). -->
+<style>
+  :root { --bg: #111; --text: #ddd; --dim: #888; --ok: #6fbf4a; --bad: #e8573a; --hi: #ffd84a; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font: 15px/1.45 ui-monospace, Menlo, monospace; }
+  h1 { font-size: 18px; margin: 0 0 6px; color: var(--hi); }
+  p { margin: 0 0 12px; color: var(--dim); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  button { font: inherit; color: var(--text); background: #2a2a2a; border: 2px solid #555; padding: 8px 12px; }
+  button:disabled { opacity: .4; }
+  section { border-top: 1px solid #333; padding: 10px 0; }
+  section h2 { font-size: 15px; margin: 0 0 6px; }
+  ol { margin: 0; padding-left: 22px; }
+  li { margin: 2px 0; word-break: break-word; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .run { color: var(--hi); }
+  #env { white-space: pre-wrap; color: var(--dim); font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>Agent check</h1>
+<p>Loads the onnx runtime and the agents with no game running, one step at a time, at each memory cap. Tap a cap, or Run all.
+The last two run at 256 MB with the game open beside them, in a fresh test world (your saved world isn't touched).</p>
+<div class="row" id="caps"></div>
+<iframe id="game" title="The game" style="display:none;width:100%;height:220px;border:1px solid #333;margin:0 0 12px"></iframe>
+<div id="out"></div>
+<div id="env"></div>
+<script type="module">
+const CAPS = [["128 MB", 2048], ["256 MB", 4096], ["512 MB", 8192], ["4 GB (no cap)", 0]];
+const base = new URL("./", location.href).href;
+const models = (await (await fetch(base + "models.json")).json()).models;
+const pick = (id) => models.find((m) => m.id === id);
+const AGENTS = [pick("ppo-rnn"), pick("priml-boss")].filter(Boolean);
+document.getElementById("env").textContent = [`${navigator.userAgent}`, `cross-origin isolated: ${self.crossOriginIsolated}`,
+  `touch points: ${navigator.maxTouchPoints}`, `device memory: ${navigator.deviceMemory ?? "?"} GB`].join("\n");
+
+// the worker: the runtime at a cap, its wasm compiled on its own (to see that step apart), then each agent loaded and asked for one move
+const code = `
+onmessage = async ({ data: { base, pages, agents } }) => {
+  const say = (step, ok, note) => postMessage({ step, ok, note });
+  let t = performance.now(); const ms = () => { const d = Math.round(performance.now() - t); t = performance.now(); return d + " ms"; };
+  if (pages) globalThis.ORT_MAX_PAGES = pages;
+  let ort;
+  try { ort = await import(base + "agent/ort/ort.wasm.bundle.min.mjs"); say("The runtime downloaded", true, ms()); }
+  catch (e) { say("The runtime downloaded", false, String(e)); return postMessage({ done: true }); }
+  try { const r = await fetch(base + "agent/ort/ort-wasm-simd-threaded.wasm"); await WebAssembly.compile(await r.arrayBuffer()); say("The runtime compiled", true, ms()); }
+  catch (e) { say("The runtime compiled", false, String(e)); return postMessage({ done: true }); }
+  ort.env.wasm.wasmPaths = base + "agent/ort/"; ort.env.wasm.numThreads = 1;
+  for (const m of agents) {
+    try {
+      const s = await ort.InferenceSession.create(m.onnx, { executionProviders: ["wasm"], graphOptimizationLevel: "disabled", enableCpuMemArena: false, enableMemPattern: false });
+      say(m.name + " loaded", true, ms());
+      const feeds = {};
+      for (const n of s.inputNames) {
+        if (n === "obs") feeds[n] = new ort.Tensor("float32", new Float32Array(843), [1, 843]);
+        else if (n === "prev_action") feeds[n] = new ort.Tensor("float32", Float32Array.of(43), [1]);
+        else { const st = (m.state || []).find((x) => x.in === n), shape = st ? st.shape : [1, 1]; feeds[n] = new ort.Tensor("float32", new Float32Array(shape.reduce((a, b) => a * b, 1)), shape); }
+      }
+      const out = await s.run(feeds); const l = out.logits.data; let best = 0; for (let i = 1; i < l.length; i++) if (l[i] > l[best]) best = i;
+      say(m.name + " made a move", true, "action " + best + ", " + ms());
+      await s.release();
+    } catch (e) { say(m.name, false, String(e && e.message || e)); }
+  }
+  postMessage({ done: true });
+};`;
+const url = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+
+const out = document.getElementById("out"), caps = document.getElementById("caps");
+// the game in a frame on this page (the same tab's memory), settled before the agents load; null: no game
+async function withGame(q) {
+  const f = document.getElementById("game");
+  if (!q) { f.src = "about:blank"; f.style.display = "none"; return; }
+  f.style.display = "block"; f.src = base + "index.html?new" + q;
+  await new Promise((r) => setTimeout(r, 12000));
+}
+function run([label, pages]) {
+  return new Promise((done) => {
+    const sec = document.createElement("section"); sec.innerHTML = `<h2 class="run">Cap ${label}: running…</h2><ol></ol>`; out.prepend(sec);
+    const ol = sec.querySelector("ol"), h = sec.querySelector("h2");
+    const w = new Worker(url, { type: "module" }); let bad = false;
+    const end = (why) => { w.terminate(); h.className = bad ? "bad" : "ok"; h.textContent = `Cap ${label}: ${why || (bad ? "failed" : "all passed")}`; done(); };
+    w.onmessage = ({ data: d }) => {
+      if (d.done) return end();
+      const li = document.createElement("li"); li.className = d.ok ? "ok" : "bad"; bad ||= !d.ok;
+      li.textContent = (d.ok ? "✓ " : "✗ ") + d.step + (d.note ? " · " + d.note : ""); ol.append(li);
+    };
+    w.onerror = (e) => { bad = true; const li = document.createElement("li"); li.className = "bad"; li.textContent = "✗ the worker stopped: " + (e.message || "no message"); ol.append(li); end(); };
+    w.postMessage({ base, pages, agents: AGENTS });
+  });
+}
+const buttons = CAPS.map((c) => { const b = document.createElement("button"); b.textContent = c[0]; b.onclick = async () => { all(true); await run(c); all(false); }; return b; });
+const runAll = document.createElement("button"); runAll.textContent = "Run all";
+runAll.onclick = async () => { all(true); await withGame(null); for (const c of CAPS) await run(c); all(false); };
+const game = [["With the game", ""], ["With the game, no plugins", "&noplugins"]].map(([label, q]) => {
+  const b = document.createElement("button"); b.textContent = label;
+  b.onclick = async () => { all(true); await withGame(q); await run([`256 MB, ${label.toLowerCase()}`, 4096]); await withGame(null); all(false); };
+  return b;
+});
+const all = (off) => [...buttons, runAll, ...game].forEach((b) => (b.disabled = off));
+caps.append(...buttons, runAll, ...game);
+</script>
+</body>
+</html>

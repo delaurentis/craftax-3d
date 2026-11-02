@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Craftax 3D Components</title>
+<style>
+:root{--bg:#fbfaf8;--fg:#1d1a18;--mut:#6b625b;--line:#e4ded8;--card:#f3efea;
+--core:#e8f1fb;--core-b:#7aa6d8;--sys:#eef6ee;--sys-b:#7fb48a;--hw:#fbf1df;--hw-b:#d2a55a;--kit:#f3eafb;--kit-b:#a585cf;--out:#f8e6e2;--out-b:#c9806f;--slot:#fff;--slot-b:#8a8178;--panel:#f6f3ef}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151312;--fg:#ece7e1;--mut:#a39b92;--line:#2c2826;--card:#1d1a18;
+--core:#18232f;--core-b:#4f79a6;--sys:#17241a;--sys-b:#4f8a5b;--hw:#2a2214;--hw-b:#a07a35;--kit:#241a2f;--kit-b:#7d5fa6;--out:#2e1c18;--out-b:#a0594a;--slot:#151312;--slot-b:#7a7068;--panel:#1a1716}}
+:root[data-theme="dark"]{--bg:#151312;--fg:#ece7e1;--mut:#a39b92;--line:#2c2826;--card:#1d1a18;
+--core:#18232f;--core-b:#4f79a6;--sys:#17241a;--sys-b:#4f8a5b;--hw:#2a2214;--hw-b:#a07a35;--kit:#241a2f;--kit-b:#7d5fa6;--out:#2e1c18;--out-b:#a0594a;--slot:#151312;--slot-b:#7a7068;--panel:#1a1716}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+nav{font-size:14px;margin-bottom:14px;color:var(--mut)}nav a{color:inherit}
+h1{font-size:26px;margin:0 0 6px}h2{font-size:19px;margin:34px 0 8px;border-top:1px solid var(--line);padding-top:18px}h3{font-size:16px;margin:0 0 4px}
+.lead{color:var(--mut);margin-top:0;max-width:860px}
+code{font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.mut{color:var(--mut)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:10px 0;font-size:13px}.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid}
+.l-core{background:var(--core);border-color:var(--core-b)}.l-sys{background:var(--sys);border-color:var(--sys-b)}.l-hw{background:var(--hw);border-color:var(--hw-b)}.l-kit{background:var(--kit);border-color:var(--kit-b)}.l-out{background:var(--out);border-color:var(--out-b)}.l-slot{background:var(--slot);border-color:var(--slot-b);border-style:dashed}
+.diagram{max-width:800px;margin:12px 0}
+.diagram svg{width:100%;height:auto;display:block}
+svg .s-core{fill:var(--core);stroke:var(--core-b)}svg .s-sys{fill:var(--sys);stroke:var(--sys-b)}svg .s-hw{fill:var(--hw);stroke:var(--hw-b)}svg .s-kit{fill:var(--kit);stroke:var(--kit-b)}svg .s-out{fill:var(--out);stroke:var(--out-b)}
+svg .panel{fill:var(--panel);stroke:var(--line)}
+svg rect{stroke-width:1.5}
+svg .t{fill:var(--fg);font:600 13px system-ui,-apple-system,sans-serif}
+svg .p{fill:var(--mut);font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
+svg .n{fill:var(--mut);font:11px system-ui,-apple-system,sans-serif}
+svg .chip{fill:var(--fg);font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
+svg .a{stroke:var(--mut);stroke-width:1.4;fill:none}
+svg .ad{stroke:var(--mut);stroke-width:1.4;fill:none;stroke-dasharray:4 3}
+svg .head{fill:var(--mut)}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:12px 14px}
+.card.c-core{border-left-color:var(--core-b)}.card.c-sys{border-left-color:var(--sys-b)}.card.c-hw{border-left-color:var(--hw-b)}.card.c-kit{border-left-color:var(--kit-b)}.card.c-out{border-left-color:var(--out-b)}
+.card p{margin:4px 0}.card dl{margin:6px 0 0;font-size:14px}.card dt{color:var(--mut);font-size:12.5px;margin-top:6px}.card dd{margin:0}
+table{border-collapse:collapse;margin:8px 0;font-size:14px;width:100%}td,th{border-bottom:1px solid var(--line);padding:5px 10px 5px 0;text-align:left;vertical-align:top}th{color:var(--mut);font-weight:500}
+.wrap{overflow-x:auto}
+.wrap td:nth-child(1),.wrap td:nth-child(3){white-space:nowrap}
+ul.notes li{margin:6px 0}
+.nest{border:1.5px solid var(--line);border-radius:9px;padding:6px 10px 10px;margin:0;min-width:0}
+.nest>b{display:block;font-size:13.5px;margin-bottom:2px}.nest>b small{font-weight:400;color:var(--mut);font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;margin-left:6px}
+.nest>.in{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:6px}.nest>.in>*{flex:1 1 180px}
+.nest>.in>.wide{flex-basis:100%}
+.leaf{display:inline-block;font-size:12.5px;padding:2px 8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);margin:3px 3px 0 0}
+.n-core{background:var(--core);border-color:var(--core-b)}.n-sys{background:var(--sys);border-color:var(--sys-b)}.n-hw{background:var(--hw);border-color:var(--hw-b)}.n-kit{background:var(--kit);border-color:var(--kit-b)}.n-out{background:var(--out);border-color:var(--out-b)}.n-page{background:var(--panel);border-color:var(--slot-b)}
+.n-ext{border-style:dashed}
+</style>
+</head>
+<body><main>
+
+<nav>Craftax 3D docs: <strong>Components</strong> · <a href="folders.html">Folders</a> · <a href="themes.md">Themes and scene packs</a> · <a href="looks.md">Writing a look</a></nav>
+
+<h1>Craftax 3D: component map</h1>
+<p class="lead">The main parts of the game, what each owns and how they connect, read from the code as of 2026-10-29. The rules run in the craftax-wasm engine; everything here draws the game, takes your input, and lets plugins add themes, set pieces, bots and services without editing the game. The directory tree, file by file, is on <a href="folders.html">folders.html</a>.</p>
+
+<h2 id="map">1. The map</h2>
+<div class="legend">
+<span><i class="l-kit"></i>plugins and setup</span>
+<span><i class="l-core"></i>game core</span>
+<span><i class="l-hw"></i>engine and bots</span>
+<span><i class="l-sys"></i>game parts</span>
+<span><i class="l-out"></i>replay</span>
+<span>slot: a plugin slot read here</span>
+</div>
+
+<div class="diagram">
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Component diagram of Craftax 3D">
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+</defs>
+
+<!-- row A: where plugins come from -->
+<rect class="s-kit" x="20" y="14" width="230" height="50" rx="7"/>
+<text class="t" x="32" y="34">Bundled example plugins</text>
+<text class="p" x="32" y="52">plugins/winter · ruins · university</text>
+
+<rect class="s-kit" x="270" y="14" width="200" height="50" rx="7"/>
+<text class="t" x="282" y="34">craftax-crystal</text>
+<text class="n" x="282" y="52">sibling repo: crystal bots</text>
+
+<rect class="s-kit" x="490" y="14" width="290" height="50" rx="7"/>
+<text class="t" x="502" y="34">A player's own plugin</text>
+<text class="p" x="502" y="52">examples/plugins/autumn.js</text>
+
+<!-- row B: setup and registry -->
+<rect class="s-kit" x="20" y="100" width="230" height="56" rx="7"/>
+<text class="t" x="32" y="120">Setup</text>
+<text class="p" x="32" y="138">craftax.config.ts</text>
+<text class="p" x="32" y="151">→ src/config.ts</text>
+
+<rect class="s-kit" x="270" y="100" width="250" height="56" rx="7"/>
+<text class="t" x="282" y="120">Plugin registry</text>
+<text class="p" x="282" y="138">src/core/plugins.ts</text>
+<text class="n" x="282" y="151">2 services · 7 lists · events</text>
+
+<rect class="s-kit" x="540" y="100" width="240" height="56" rx="7"/>
+<text class="t" x="552" y="120">User plugins</text>
+<text class="p" x="552" y="138">src/core/user-plugins.ts</text>
+<text class="n" x="552" y="151">Settings → World → Add plugin…</text>
+
+<line class="a" x1="135" y1="64" x2="135" y2="98" marker-end="url(#ah)"/>
+<line class="a" x1="300" y1="64" x2="234" y2="98" marker-end="url(#ah)"/>
+<line class="a" x1="660" y1="64" x2="660" y2="98" marker-end="url(#ah)"/>
+<line class="a" x1="250" y1="128" x2="268" y2="128" marker-end="url(#ah)"/>
+<line class="a" x1="540" y1="128" x2="522" y2="128" marker-end="url(#ah)"/>
+
+<!-- row C: engine, bridge, core -->
+<rect class="s-hw" x="20" y="196" width="140" height="64" rx="7"/>
+<text class="t" x="32" y="216">Engine</text>
+<text class="p" x="32" y="234">engine/</text>
+<text class="n" x="32" y="250">craftax-wasm build</text>
+
+<rect class="s-hw" x="180" y="196" width="180" height="64" rx="7"/>
+<text class="t" x="192" y="216">Engine bridge</text>
+<text class="p" x="192" y="234">js/local.ts · js/net.ts</text>
+<text class="n" x="192" y="250">answers /api/… in the tab</text>
+
+<rect class="s-core" x="380" y="196" width="400" height="64" rx="7"/>
+<text class="t" x="392" y="216">Game core  src/core</text>
+<text class="p" x="392" y="234">game.ts · apply.ts · frame.ts · events.ts</text>
+<text class="p" x="392" y="250">js/main.ts boot · js/telemetry.ts</text>
+<text class="chip" x="672" y="250">slot: telemetry</text>
+
+<line class="ad" x1="450" y1="156" x2="450" y2="194" marker-end="url(#ah)"/>
+<text class="n" x="458" y="180">slots, events</text>
+<line class="a" x1="162" y1="228" x2="178" y2="228" marker-start="url(#ah)" marker-end="url(#ah)"/>
+<line class="a" x1="360" y1="216" x2="378" y2="216" marker-end="url(#ah)"/>
+<line class="a" x1="380" y1="242" x2="362" y2="242" marker-end="url(#ah)"/>
+
+<!-- panel: the parts the core drives -->
+<rect class="panel" x="10" y="286" width="780" height="306" rx="10"/>
+<line class="a" x1="590" y1="260" x2="590" y2="296" marker-end="url(#ah)"/>
+
+<!-- row D -->
+<rect class="s-hw" x="24" y="300" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="320">Bots</text>
+<text class="p" x="36" y="337">js/agent.ts</text>
+<text class="n" x="36" y="353">ONNX in a worker</text>
+<text class="chip" x="130" y="337">slot: bot</text>
+
+<rect class="s-sys" x="214" y="300" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="320">Input</text>
+<text class="p" x="226" y="337">src/input</text>
+<text class="n" x="226" y="353">keys, mouse, touch</text>
+
+<rect class="s-sys" x="404" y="300" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="320">HUD, UI, screens</text>
+<text class="p" x="416" y="337">src/ui · js/hud.ts</text>
+<text class="chip" x="416" y="353">slot: brainView</text>
+
+<rect class="s-sys" x="594" y="300" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="320">Sound</text>
+<text class="p" x="606" y="337">src/sound</text>
+<text class="n" x="606" y="353">Web Audio, CC0 clips</text>
+
+<line class="a" x1="110" y1="300" x2="230" y2="262" marker-end="url(#ah)"/>
+<line class="a" x1="300" y1="300" x2="320" y2="262" marker-end="url(#ah)"/>
+<text class="n" x="328" y="282">action</text>
+
+<!-- row E -->
+<rect class="s-sys" x="24" y="390" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="410">World</text>
+<text class="p" x="36" y="427">src/world</text>
+<text class="n" x="36" y="443">the map as block meshes</text>
+
+<rect class="s-sys" x="214" y="390" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="410">Themes</text>
+<text class="p" x="226" y="427">src/themes</text>
+<text class="chip" x="226" y="443">slot: theme</text>
+
+<rect class="s-sys" x="404" y="390" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="410">Set pieces</text>
+<text class="p" x="416" y="427">src/scenes</text>
+<text class="chip" x="416" y="443">slot: setPieces</text>
+
+<rect class="s-sys" x="594" y="390" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="410">Effects</text>
+<text class="p" x="606" y="427">src/effects</text>
+<text class="n" x="606" y="443">deaths, hits, the portal</text>
+
+<line class="a" x1="214" y1="410" x2="198" y2="410" marker-end="url(#ah)"/>
+<line class="a" x1="404" y1="410" x2="388" y2="410" marker-end="url(#ah)"/>
+
+<!-- row F -->
+<rect class="s-sys" x="24" y="480" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="500">Rendering</text>
+<text class="p" x="36" y="517">src/render</text>
+<text class="p" x="36" y="533">js/shading.ts</text>
+
+<rect class="s-sys" x="214" y="480" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="500">Looks</text>
+<text class="p" x="226" y="517">src/looks</text>
+<text class="n" x="226" y="533">color · laser · phosphor</text>
+
+<rect class="s-sys" x="404" y="480" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="500">Views</text>
+<text class="p" x="416" y="517">src/views</text>
+<text class="chip" x="480" y="517">slot: lookView</text>
+<text class="chip" x="416" y="533">slot: memoryView</text>
+
+<rect class="s-out" x="594" y="480" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="500">Replay</text>
+<text class="p" x="606" y="517">src/replay</text>
+<text class="chip" x="606" y="533">slot: replayStore</text>
+
+<line class="a" x1="110" y1="454" x2="110" y2="478" marker-end="url(#ah)"/>
+<line class="a" x1="250" y1="454" x2="186" y2="480" marker-end="url(#ah)"/>
+<line class="a" x1="214" y1="512" x2="198" y2="512" marker-end="url(#ah)"/>
+<line class="a" x1="404" y1="512" x2="388" y2="512" marker-end="url(#ah)"/>
+
+<text class="n" x="24" y="574">Every part in this panel is driven by the core: apply(state) on each new state from the engine, frame(now) on every frame.</text>
+</svg>
+</div>
+
+<p class="mut">How a move flows: <strong>Input</strong> (or a <strong>bot</strong>) picks one Craftax action → the core's <code>api</code> posts it to <code>/api/step</code> → <strong>js/local.ts</strong> steps the wasm <strong>engine</strong> in the tab and returns the new state → <code>apply.ts</code> diffs it against the old one and sets off what follows (world rebuild, creatures, effects, sounds, HUD) → <code>frame.ts</code> draws it every frame in the current <strong>view</strong> and <strong>look</strong>, under the current <strong>theme</strong>. Arrows inside the panel: themes feed the world (tiles, heights, decorations) and the renderer (the texture atlas and blend); set pieces draw through the themes' <code>Draw</code> kit; views pick the look, and the look picks the render pass.</p>
+
+<h2 id="nested">2. What sits inside what</h2>
+<p class="lead">The same parts as boxes inside boxes: each box holds the parts it owns or loads. These are groupings of folders and files, not objects in the code; section 3 shows the objects. Colors follow the map above; a dashed box comes from another repo or is added by a player.</p>
+<div class="nest n-page"><b>craftax-3d <small>index.html · js/main.ts</small></b><div class="in">
+
+  <div class="nest n-kit"><b>Setup and plugins <small>craftax.config.ts · src/core</small></b><div class="in">
+    <div class="nest n-kit"><b>Plugin registry <small>plugins.ts · events.ts</small></b>
+      <span class="leaf">telemetry</span><span class="leaf">replayStore</span><span class="leaf">bot</span><span class="leaf">brainView</span><span class="leaf">memoryView</span><span class="leaf">look</span><span class="leaf">theme</span><span class="leaf">setPieces</span></div>
+    <div class="nest n-kit"><b>Bundled plugins <small>plugins/</small></b>
+      <span class="leaf">Winter</span><span class="leaf">Ruins</span><span class="leaf">Tropical</span><span class="leaf">University</span></div>
+    <div class="nest n-kit n-ext"><b>Added from outside</b>
+      <span class="leaf">craftax-crystal</span><span class="leaf">a player's plugin (autumn.js)</span></div>
+  </div></div>
+
+  <div class="nest n-core wide"><b>Game core <small>src/core: game · apply · frame</small></b><div class="in">
+
+    <div class="nest n-hw"><b>Engine bridge <small>js/local.ts · js/net.ts</small></b><div class="in">
+      <div class="nest n-hw n-ext"><b>Engine <small>engine/</small></b><span class="leaf">craftax-wasm (C → WebAssembly)</span></div>
+      <div class="nest n-hw"><b>Bots <small>js/agent.ts</small></b><div class="in">
+        <div class="nest n-hw"><b>Agent worker <small>js/agent-worker.ts</small></b><div class="in">
+          <div class="nest n-hw n-ext"><b>craftax-agents players</b><span class="leaf">onnx</span><span class="leaf">mingru</span><span class="leaf">gru</span></div>
+        </div></div>
+        <div class="nest n-hw n-ext"><b>Plugin bots <small>slot: bot</small></b><span class="leaf">crystal agents</span></div>
+      </div></div>
+    </div></div>
+
+    <div class="nest n-sys"><b>The world on screen</b><div class="in">
+      <div class="nest n-sys"><b>World <small>src/world</small></b><div class="in">
+        <div class="nest n-sys"><b>Themes <small>src/themes · slot: theme</small></b><span class="leaf">tiles</span><span class="leaf">crowns</span><span class="leaf">creatures</span><span class="leaf">sky</span><span class="leaf">weather</span></div>
+        <div class="nest n-sys"><b>Set pieces <small>src/scenes · slot: setPieces</small></b><span class="leaf">place</span><span class="leaf">recognize</span></div>
+      </div></div>
+      <div class="nest n-sys"><b>Views <small>src/views</small></b><div class="in">
+        <div class="nest n-sys"><b>Looks <small>src/looks</small></b><div class="in">
+          <div class="nest n-sys"><b>Rendering <small>src/render · shading</small></b><span class="leaf">scene</span><span class="leaf">creatures</span><span class="leaf">arm</span><span class="leaf">sky</span></div>
+        </div><span class="leaf">color</span><span class="leaf">laser</span><span class="leaf">phosphor</span><span class="leaf">classic 2D</span></div>
+      </div><span class="leaf">first person</span><span class="leaf">bird's-eye</span><span class="leaf">camera flights</span></div>
+      <div class="nest n-sys"><b>Effects <small>src/effects</small></b><span class="leaf">deaths</span><span class="leaf">hits</span><span class="leaf">chests</span><span class="leaf">the portal</span></div>
+      <div class="nest n-sys"><b>Textures <small>src/resources</small></b><span class="leaf">block atlas</span><span class="leaf">outline atlas</span><span class="leaf">icons</span></div>
+    </div></div>
+
+    <div class="nest n-sys"><b>What the player touches</b><div class="in">
+      <div class="nest n-sys"><b>Input <small>src/input</small></b><span class="leaf">keys</span><span class="leaf">mouse</span><span class="leaf">touch pad</span><span class="leaf">tap to walk</span></div>
+      <div class="nest n-sys"><b>HUD, UI, screens <small>src/ui</small></b><span class="leaf">status bars</span><span class="leaf">hotbar</span><span class="leaf">Settings</span><span class="leaf">bot panel · slot: brainView</span></div>
+      <div class="nest n-sys"><b>Sound <small>src/sound</small></b><span class="leaf">synthesized</span><span class="leaf">CC0 clips</span></div>
+    </div></div>
+
+    <div class="nest n-out"><b>Replay <small>src/replay · js/record.ts</small></b><div class="in">
+      <div class="nest n-out"><b>Recording</b><span class="leaf">snapshot</span><span class="leaf">ops</span><span class="leaf">camera</span></div>
+      <div class="nest n-out"><b>Replay page <small>replay.html</small></b><span class="leaf">trim</span><span class="leaf">keyframes</span><span class="leaf">video</span><span class="leaf">embed · slot: replayStore</span></div>
+    </div></div>
+
+    <div class="nest n-core"><b>Telemetry <small>js/telemetry.ts · slot: telemetry</small></b><span class="leaf">starts</span><span class="leaf">achievements</span><span class="leaf">steps</span></div>
+
+  </div></div>
+</div></div>
+
+<h2 id="objects">3. The actual objects</h2>
+<p class="lead">What exists when the game runs. Most of the code is modules of plain functions, so there are few objects. Nine class instances last as long as the page: the four marked "= new", the four effects, and <code>events</code>, which isn't drawn. One <code>Worker</code> runs per bot model picked. The other boxes are plain objects, three.js objects, or the two functions everything hangs off. Colors follow the map above; a dashed box comes from another repo or a plugin.</p>
+<div class="diagram">
+<svg viewBox="0 0 800 590" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The objects Craftax 3D has at run time">
+
+<text class="n" x="14" y="28">Each box exists at run time.</text>
+<text class="n" x="14" y="46">"= new" is a class instance. "(…)" is a function.</text>
+<text class="n" x="14" y="64">The rest are plain objects or three.js objects.</text>
+
+<!-- worker threads -->
+<rect class="panel" x="394" y="10" width="396" height="76" rx="10"/>
+<text class="n" x="404" y="26">Worker threads</text>
+<rect class="s-hw" x="404" y="32" width="172" height="48" rx="7"/>
+<text class="t" x="416" y="51">new Worker</text>
+<text class="p" x="416" y="69">js/agent-worker.ts</text>
+<rect class="s-hw" x="594" y="32" width="172" height="48" rx="7" stroke-dasharray="4 3"/>
+<text class="t" x="606" y="51">A plugin's worker</text>
+<text class="p" x="606" y="69">own.worker(m)</text>
+
+<!-- main thread -->
+<rect class="panel" x="10" y="92" width="780" height="488" rx="10"/>
+<text class="n" x="24" y="108">Main thread</text>
+
+<!-- row 0 -->
+<rect class="s-sys" x="24" y="118" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="138">aimState, screens, …</text>
+<text class="p" x="36" y="155">src/input, src/ui, …</text>
+<text class="n" x="36" y="171">31 plain state objects</text>
+
+<rect class="s-sys" x="214" y="118" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="138">brain</text>
+<text class="p" x="226" y="155">js/brain.ts</text>
+<text class="n" x="226" y="171">the neuron picture</text>
+
+<rect class="s-hw" x="404" y="118" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="138">bot.agent</text>
+<text class="p" x="416" y="155">js/agent.ts</text>
+<text class="n" x="416" y="171">talks to the bot's worker</text>
+
+<rect class="s-out" x="594" y="118" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="138">recorder, player</text>
+<text class="p" x="606" y="155">js/record.ts</text>
+<text class="n" x="606" y="171">make and play recordings</text>
+
+<!-- row 1 -->
+<rect class="s-sys" x="24" y="212" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="232">intent</text>
+<text class="p" x="36" y="249">src/input/intent.ts</text>
+<text class="n" x="36" y="265">sends your action</text>
+
+<rect class="s-hw" x="214" y="212" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="232">net</text>
+<text class="p" x="226" y="249">js/net.ts</text>
+<text class="n" x="226" y="265">which server; api()</text>
+
+<rect class="s-hw" x="404" y="212" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="232">local</text>
+<text class="p" x="416" y="249">js/local.ts</text>
+<text class="n" x="416" y="265">answers /api/… in the tab</text>
+
+<rect class="s-hw" x="594" y="212" width="172" height="64" rx="7" stroke-dasharray="4 3"/>
+<text class="t" x="606" y="232">cx, game</text>
+<text class="p" x="606" y="249">craftax-wasm</text>
+<text class="n" x="606" y="265">the engine, in WebAssembly</text>
+
+<!-- row 2 -->
+<rect class="s-core" x="24" y="306" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="326">game</text>
+<text class="p" x="36" y="343">src/core/game.ts</text>
+<text class="n" x="36" y="359">the state S, hud, yaw, …</text>
+
+<rect class="s-core" x="214" y="306" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="326">apply(s)</text>
+<text class="p" x="226" y="343">src/core/apply.ts</text>
+<text class="n" x="226" y="359">on each new state</text>
+
+<rect class="s-core" x="404" y="306" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="326">frame(now)</text>
+<text class="p" x="416" y="343">src/core/frame.ts</text>
+<text class="n" x="416" y="359">on every frame</text>
+
+<rect class="s-kit" x="594" y="306" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="326">Plugin registry</text>
+<text class="p" x="606" y="343">src/core/plugins.ts</text>
+<text class="n" x="606" y="359">functions and lists, no class</text>
+
+<!-- row 3 -->
+<rect class="s-sys" x="24" y="406" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="426">game.hud = new Hud</text>
+<text class="p" x="36" y="443">js/hud.ts</text>
+<text class="n" x="36" y="459">status bars, hotbar</text>
+
+<rect class="s-sys" x="214" y="406" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="426">world = new World</text>
+<text class="p" x="226" y="443">src/world/core.ts</text>
+<text class="n" x="226" y="459">the map as block meshes</text>
+
+<rect class="s-sys" x="404" y="406" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="426">4 effect instances</text>
+<text class="p" x="416" y="443">js/fell.ts</text>
+<text class="n" x="416" y="459">felling dying bursts bones</text>
+
+<rect class="s-sys" x="594" y="406" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="426">sound = new Sound</text>
+<text class="p" x="606" y="443">src/sound/core.ts</text>
+<text class="n" x="606" y="459">Web Audio</text>
+
+<!-- row 4 -->
+<rect class="s-sys" x="24" y="500" width="172" height="64" rx="7"/>
+<text class="t" x="36" y="520">clouds = new Clouds</text>
+<text class="p" x="36" y="537">js/clouds.ts</text>
+<text class="n" x="36" y="553">drift overhead</text>
+
+<rect class="s-sys" x="214" y="500" width="172" height="64" rx="7"/>
+<text class="t" x="226" y="520">scene, camera</text>
+<text class="p" x="226" y="537">src/render/scene.ts</text>
+<text class="n" x="226" y="553">three.js objects</text>
+
+<rect class="s-sys" x="404" y="500" width="172" height="64" rx="7"/>
+<text class="t" x="416" y="520">renderer, composer</text>
+<text class="p" x="416" y="537">src/render, src/looks</text>
+<text class="n" x="416" y="553">WebGL, bloom, laser</text>
+
+<rect class="s-sys" x="594" y="500" width="172" height="64" rx="7"/>
+<text class="t" x="606" y="520">atlas</text>
+<text class="p" x="606" y="537">src/resources/blocks</text>
+<text class="n" x="606" y="553">the world's block texture</text>
+
+<!-- arrows: the move -->
+<line class="a" x1="196" y1="244" x2="212" y2="244" marker-end="url(#ah)"/>
+<line class="a" x1="386" y1="244" x2="402" y2="244" marker-end="url(#ah)"/>
+<line class="a" x1="576" y1="244" x2="592" y2="244" marker-end="url(#ah)"/>
+<line class="a" x1="300" y1="212" x2="300" y2="184" marker-end="url(#ah)"/>
+<line class="a" x1="490" y1="212" x2="490" y2="184" marker-end="url(#ah)"/>
+<line class="a" x1="540" y1="212" x2="640" y2="184" marker-end="url(#ah)"/>
+<text class="n" x="600" y="208">ops</text>
+<line class="a" x1="490" y1="118" x2="490" y2="82" marker-start="url(#ah)" marker-end="url(#ah)"/>
+<text class="n" x="498" y="106">postMessage</text>
+<line class="a" x1="300" y1="276" x2="300" y2="304" marker-end="url(#ah)"/>
+<text class="n" x="308" y="295">new state</text>
+<line class="a" x1="214" y1="338" x2="198" y2="338" marker-end="url(#ah)"/>
+
+<!-- arrows: apply and frame call into the objects -->
+<path class="a" d="M300,370 V388"/>
+<path class="a" d="M490,370 V388"/>
+<path class="a" d="M110,388 H680"/>
+<line class="a" x1="110" y1="388" x2="110" y2="404" marker-end="url(#ah)"/>
+<line class="a" x1="300" y1="388" x2="300" y2="404" marker-end="url(#ah)"/>
+<line class="a" x1="490" y1="388" x2="490" y2="404" marker-end="url(#ah)"/>
+<line class="a" x1="680" y1="388" x2="680" y2="404" marker-end="url(#ah)"/>
+<text class="n" x="308" y="383">both call these</text>
+<text class="n" x="498" y="383">(frame: all but the HUD)</text>
+
+<!-- arrows: drawing -->
+<path class="a" d="M585,388 V532 H578" marker-end="url(#ah)"/>
+<line class="a" x1="300" y1="470" x2="300" y2="498" marker-end="url(#ah)"/>
+<line class="a" x1="450" y1="470" x2="372" y2="498" marker-end="url(#ah)"/>
+<line class="a" x1="196" y1="532" x2="212" y2="532" marker-end="url(#ah)"/>
+<line class="a" x1="404" y1="532" x2="388" y2="532" marker-end="url(#ah)"/>
+</svg>
+</div>
+<p class="mut">What's left out: <code>events</code> (<code>new Events</code>, <code>src/core/events.ts</code>), the short-lived <code>Geo</code> mesh builders, and every mob and shot, which are three.js models kept in the <code>mobs</code> and <code>shots</code> Maps. <code>World</code> and <code>Sound</code> are each one object whose methods are mixed in from four part classes, such as <code>WorldBuild</code> and <code>SoundAmbient</code>. Themes, looks, views and effects other than those four have no object of their own: they are modules of functions and state.</p>
+
+<h2 id="slots">4. Plugin slots</h2>
+<p class="lead">A plugin is <code>{ name, provides, setup(host) }</code>. <code>setup</code> gets <code>host.events</code>, <code>host.three</code> (the game's own three.js) and <code>host.kit</code> (the plugin API, so a one-file plugin needs no imports), <code>host.provide(service, impl)</code> and <code>host.add(list, item)</code>. Filling a slot not listed in <code>provides</code> is refused, and a plugin whose setup throws is logged and left out. Source: <code>src/core/plugins.ts</code>. A plugin built into the game imports from <code>plugin.ts</code> (<code>"craftax-3d/plugin"</code>: the types, block ids, the tile painter's helpers, creature parts, HUD icons, <code>orient</code>) and nothing else of the game; <code>tools/check-plugins.ts</code>, part of <code>npm run check</code>, fails any other import.</p>
+<div class="wrap"><table>
+<tr><th>Slot</th><th>Kind</th><th>Shape</th><th>Read by</th><th>What it does</th></tr>
+<tr><td><code>telemetry</code></td><td>service</td><td><code>Telemetry</code></td><td><code>js/telemetry.ts</code></td><td>Where game analytics go. With none, nothing is sent.</td></tr>
+<tr><td><code>replayStore</code></td><td>service</td><td><code>ReplayStore</code></td><td><code>js/record.ts</code>, <code>src/replay/page/open.ts</code></td><td>Puts a recording on the web and returns its link (Share → link / embed).</td></tr>
+<tr><td><code>bot</code></td><td>list</td><td><code>BotSource</code></td><td><code>js/agent.ts</code></td><td>A kind of bot the built-in ONNX player can't run: its models join the picker, each in its own worker speaking the agent-worker protocol.</td></tr>
+<tr><td><code>brainView</code></td><td>list</td><td><code>BrainView</code></td><td><code>js/main.ts</code>, <code>js/net.ts</code></td><td>A picture of what the bot is thinking, in place of the built-in neuron brain.</td></tr>
+<tr><td><code>memoryView</code></td><td>list</td><td><code>MemoryView</code></td><td><code>src/views/memory.ts</code></td><td>Paints the bot's memory on the two panels beside the classic 2D view (Y toggles).</td></tr>
+<tr><td><code>look</code></td><td>list</td><td><code>Look</code></td><td><code>src/looks/registry.ts</code></td><td>A look of its own: a place in M's order, a button, its css and ink (doc/looks.md).</td></tr>
+<tr><td><code>lookView</code></td><td>list</td><td><code>LookView</code></td><td><code>src/looks/registry.ts</code></td><td>How a look (its own or another's) draws a list of views: a post pass and render scale in 3D, or its own picture (the crystal plugin: laser in the classic view).</td></tr>
+<tr><td><code>theme</code></td><td>list</td><td><code>Theme</code></td><td><code>src/themes/state.ts</code></td><td>A way of drawing the world (T cycles them). Never changes the game.</td></tr>
+<tr><td><code>setPieces</code></td><td>list</td><td><code>SetPieces</code></td><td><code>src/scenes/active.ts</code>, <code>src/themes/atlas.ts</code></td><td>A scene's real content written into new worlds (<code>?scene=&lt;id&gt;</code>). With <code>theme</code>, a "scene pack".</td></tr>
+<tr><td><code>view</code></td><td>list</td><td><code>unknown</code></td><td class="mut">nothing yet</td><td class="mut">Declared in the slot table; no module reads it.</td></tr>
+</table></div>
+
+<h2 id="cards">5. Components</h2>
+<div class="cards">
+
+<div class="card c-kit">
+<h3>Boot and setup</h3>
+<p>One config file sets up a copy of the game: its home site (the Research screen and menus link there) and its plugins. <code>src/config.ts</code> reads it and registers the plugins on import, so both pages import it first. <code>js/main.ts</code> then boots: the player's own plugins, the server or local engine, <code>/api/meta</code>, the HUD, the themes, then the first world. The start menu carries the Shellcaster credit (<code>index.html</code>).</p>
+<dl>
+<dt>Key files</dt><dd><code>craftax.config.ts</code>, <code>src/config.ts</code>, <code>js/main.ts</code>, <code>index.html</code>, <code>replay.html</code>, <code>vite.config.ts</code>, <code>src/page-url.ts</code>, <code>js/build.ts</code>, <code>tools/runtime-files.ts</code></dd>
+<dt>Depends on</dt><dd>Everything: importing <code>js/main.ts</code> pulls every part in, in order.</dd>
+<dt>Extension points</dt><dd><code>CRAFTAX_CONFIG</code> (a host's own config), <code>CRAFTAX_OUT</code> (build elsewhere), <code>CRAFTAX_TUNNEL</code> (phone via ngrok), the <code>craftax-3d/…</code> import alias for plugins, <code>VITE_SHIPPED=1</code> (drops debug switches like <code>?god</code>).</dd>
+</dl>
+</div>
+
+<div class="card c-kit">
+<h3>Plugin core</h3>
+<p>The registry (two services, seven lists), the typed event bus handed to plugins, and the plugins a player adds by hand: an https address or a <code>.js</code> file, saved per player and loaded at boot before the first world is built. Never from a link; <code>?noplugins</code> boots without them.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/core/plugins.ts</code>, <code>src/core/events.ts</code>, <code>src/core/user-plugins.ts</code></dd>
+<dt>Depends on</dt><dd><code>three</code>, the theme types</dd>
+<dt>Extension points</dt><dd>All nine slots (table above). Events: <code>ready</code>, <code>state</code>, <code>step</code>, <code>screen</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-core">
+<h3>Game core</h3>
+<p>The game's state (meta, the state, the HUD, the views, creatures and shots, keys held, the server API), <code>apply(s)</code>: a new state against the old one and everything that follows from the difference, and <code>frame(now)</code>: the clock, the frame-rate meter, moving and drawing everything. Shared bits (sound, DOM lookup, action ids, eye height) and the data shapes live here too.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/core/game.ts</code>, <code>apply.ts</code>, <code>frame.ts</code>, <code>shared.ts</code>, <code>types.ts</code>, <code>mixin.ts</code></dd>
+<dt>Depends on</dt><dd>Nearly every other part (effects, render, UI, input, themes, looks, views) and the engine bridge</dd>
+<dt>Extension points</dt><dd>None directly; plugins reach it through slots and events.</dd>
+</dl>
+</div>
+
+<div class="card c-hw">
+<h3>Engine bridge</h3>
+<p>The craftax-wasm engine (bit-exact with JAX Craftax) runs in the tab and answers the same <code>/api/…</code> calls a game server would, so the game plays it unchanged. It records every op for replays, places a scene's set pieces into a new world, and runs the bot. <code>js/net.ts</code> keeps the platform plumbing: which server, which world, the world and server lists (<code>?server=local</code>, <code>?watch=</code>).</p>
+<dl>
+<dt>Key files</dt><dd><code>js/local.ts</code>, <code>js/net.ts</code>, <code>engine/</code> (built from craftax-wasm, git-ignored, copied by <code>tools/runtime-files.ts</code>), <code>src/core/types.ts</code> (<code>CraftaxGame</code>, the state's shape)</dd>
+<dt>Depends on</dt><dd>engine, bots, set pieces (<code>src/scenes/place.ts</code>), telemetry</dd>
+<dt>Extension points</dt><dd><code>bot</code> sources may <code>observe</code> something other than the packed observation; <code>CRAFTAX_WASM</code> points at another engine checkout.</dd>
+</dl>
+</div>
+
+<div class="card c-hw">
+<h3>Bots</h3>
+<p>The playable models are listed in <code>public/models.json</code> (the first is the default); each loads lazily in its own worker, only once picked, and runs as ONNX in onnxruntime-web: observation and action mask in, an action out (greedy or sampled). The bot panel's neuron brain shows the action probabilities; the Research screen lists the papers and the agents.</p>
+<dl>
+<dt>Key files</dt><dd><code>js/agent.ts</code>, <code>js/agent-worker.ts</code>, <code>js/brain.ts</code>, <code>js/research.ts</code>, <code>public/models.json</code>, <code>public/agent/ort/</code> (fetched at build)</dd>
+<dt>Depends on</dt><dd><code>onnxruntime-web</code>, <code>src/core</code></dd>
+<dt>Extension points</dt><dd>Slots <code>bot</code> (other kinds of bot, each in its plugin's worker) and <code>brainView</code>. New ONNX agents: a <code>models.json</code> entry.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>World building</h3>
+<p>The current floor's map as blocks: one mesh per material, rebuilt chunk by chunk when the map, items or light change. The <code>World</code> class is split over several modules and mixed together: terrain (column heights, ground, portcullises), build (the meshes), shapes (loose pieces, the crosshair's raycast), light (torch and lava light, fountains).</p>
+<dl>
+<dt>Key files</dt><dd><code>src/world/core.ts</code>, <code>build.ts</code>, <code>terrain.ts</code>, <code>shapes.ts</code>, <code>light.ts</code>, <code>geo.ts</code>, <code>blocks.ts</code>; <code>js/world.ts</code> keeps the import path</dd>
+<dt>Depends on</dt><dd>themes (the most-used import), block textures, shading, set pieces</dd>
+<dt>Extension points</dt><dd><code>Theme.tile</code>, <code>shape</code>, <code>decorate</code>, <code>crown</code>; set pieces' <code>covers</code>, <code>paved</code>, <code>draw</code>, <code>beyond</code>, <code>solid</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Rendering and shading</h3>
+<p>The WebGL renderer, scene, camera and sky (sun, moon, stars, clouds); one shader for blocks, water, glow and creatures that ray-traces the floor's voxel grid for shadow and sky light, adds block light, waves and the sun's glint, and outputs HDR for bloom and filmic tone mapping. Also the first-person arm and tool, creatures and their health bars, the player's pose, aiming, and graphics quality.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/render/scene.ts</code>, <code>arm.ts</code>, <code>entities.ts</code>, <code>player-pose.ts</code>, <code>quality.ts</code>, <code>targeting.ts</code>, <code>src/render/shading/</code>, <code>js/shading.ts</code>, <code>js/models.ts</code>, <code>js/clouds.ts</code></dd>
+<dt>Depends on</dt><dd><code>three</code>, world, themes, looks, effects</dd>
+<dt>Extension points</dt><dd><code>Theme.creatures</code>, <code>player</code>, <code>sky</code>, <code>grass</code>; the shader blends two themes' atlases per tile.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Textures and icons</h3>
+<p>No image files for the 3D blocks: every tile is painted by code into one atlas (with lava's frames), plus a line-drawing atlas for the laser and phosphor looks. The HUD's pixel icons and the item registry (hotbar slots, recipes, spells, armor) live beside them.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/resources/blocks/</code> (<code>paint.ts</code>, <code>atlas.ts</code>, <code>outline-atlas.ts</code>, <code>painters/</code>), <code>src/resources/items/</code>; <code>js/textures.ts</code> keeps the import path</dd>
+<dt>Depends on</dt><dd>themes, world block ids</dd>
+<dt>Extension points</dt><dd><code>Theme.paint</code> (repaint existing tiles), <code>tiles</code> (new tiles with outlines), <code>icons</code>; <code>SetPieces.tiles</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Looks</h3>
+<p>How the world is rendered (M): color, laser (red outlines over dark, from the surface ids the scene renders), phosphor (green), and any look a plugin adds (noir and pixel come as examples). Each look draws every view, the classic 2D view in Craftax's original art unless it has a picture of its own. Owns the post-processing composer and bloom, the fade between looks, each frame's render in its look, and each look's own HUD styles and effects (phosphor's shockwaves and gravestone in characters).</p>
+<dl>
+<dt>Key files</dt><dd><code>src/looks/types.ts</code> (the Look interface), <code>registry.ts</code> (the looks in M's order), <code>looks.ts</code> (state and switches), <code>render.ts</code>, <code>shared/outline-pass.ts</code> (the outline pass both line looks use), <code>shared/outline.css</code> (the HUD and menus both line looks share, under <code>body.outline</code>), one folder a look with its code and css (<code>color/</code>, <code>laser/</code>, <code>phosphor/</code>: code art, shockwaves, the gravestone, the caption), <code>js/art2d.ts</code> (the original 2D renderer, ported)</dd>
+<dt>Depends on</dt><dd>render, effects, shading</dd>
+<dt>Extension points</dt><dd>Slot <code>look</code> (a new look with its own button), slot <code>lookView</code> (how a look draws some views: a post pass in 3D, or its own picture in the classic view; doc/looks.md); <code>Theme.classic</code> (a theme's own 2D picture); <code>Theme.weather</code> gets the look to draw outlines only.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Views</h3>
+<p>Where the camera is: first person, third person, the classic 2D view and the 3/4 overhead (C, V, B), with the flights between them, quakes and jolts. Also the memory strip's two canvases beside the classic view, which only show when a plugin brings a memory view.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/views/views.ts</code>, <code>camera.ts</code>, <code>memory.ts</code></dd>
+<dt>Depends on</dt><dd>looks, render, input, effects, UI</dd>
+<dt>Extension points</dt><dd>Slots <code>lookView</code> (a look's renderer for a view) and <code>memoryView</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Themes</h3>
+<p>What the world is drawn as (T), never what it is: the engine, bots, recordings and replays are the same under any theme. Repaints the atlas with the theme's tiles, asks the theme tile by tile for faces, heights and decorations, morphs crowns and creatures as a wave runs out from your tile, and eases in its sky, fog and weather. Includes the Settings picker and on-screen names.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/themes/types.ts</code> (the interfaces), <code>state.ts</code>, <code>transition.ts</code>, <code>atlas.ts</code>, <code>blocks.ts</code>, <code>crowns.ts</code>, <code>creatures.ts</code>, <code>creature-morph.ts</code>, <code>sky.ts</code>, <code>weather.ts</code>, <code>names.ts</code>, <code>draw.ts</code>, <code>ui.ts</code>; guide: <code>doc/themes.md</code></dd>
+<dt>Depends on</dt><dd>world, textures, render, sound (theme sounds)</dd>
+<dt>Extension points</dt><dd>Slot <code>theme</code>. Theme fields: <code>id</code>, <code>label</code>, <code>default</code>, <code>transition</code> (wave or fade), <code>paint</code>, <code>tiles</code>, <code>tile()</code>, <code>shape()</code>, <code>decorate()</code>, <code>crown()</code>, <code>icons</code>, <code>names</code>, <code>bits</code>, <code>grass</code>, <code>creatures</code>, <code>player</code>, <code>sky</code>, <code>weather()</code>, <code>classic()</code>, <code>sounds</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Set pieces (scenes)</h3>
+<p>Real content a scene writes into a new world: each floor is read as generated and handed to the scene's <code>place()</code>; its writes go into the engine's own snapshot, so from then on they are the game (saved, recorded, replayed). <code>recognize()</code> finds a set piece again from the map alone. A scene keeps its worlds apart from the player's own.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/scenes/active.ts</code> (which scene, <code>?scene=</code>), <code>place.ts</code>, <code>orient.ts</code> (turning a layout to a side of the map)</dd>
+<dt>Depends on</dt><dd>themes (types, <code>Draw</code>), the engine snapshot via <code>js/local.ts</code></dd>
+<dt>Extension points</dt><dd>Slot <code>setPieces</code>: <code>id</code>, <code>label</code>, <code>default</code>, <code>tiles</code>, <code>place()</code>, <code>recognize()</code>; a <code>Placement</code> has <code>data</code>, <code>writes</code>, <code>moves</code>, <code>covers()</code>, <code>paved()</code>, <code>draw()</code>, <code>beyond()</code>, <code>solid()</code>, <code>fog</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Effects</h3>
+<p>The game's moments, played out on top of the state: felling a tree, dust bursts and dying creatures, hits and knockback, chests opening and low-need warnings, dying (falling, sinking, lava), hanging over lava's edge, fireballs and iceballs, the Necromancer, the victory and the portal tunnel, and the <code>?god</code> / <code>?debug</code> tools.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/effects/</code> (<code>chest</code>, <code>death</code>, <code>god</code>, <code>hang</code>, <code>hits</code>, <code>necromancer</code>, <code>shots</code>, <code>tunnel</code>, <code>victory</code>), <code>js/fell.ts</code>, <code>js/fell-types.ts</code></dd>
+<dt>Depends on</dt><dd>core, render, UI, looks, shading</dd>
+<dt>Extension points</dt><dd><code>Theme.bits</code> (leaf and grass colors of the loose bits).</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Input</h3>
+<p>Turns keys, mouse and touch into one Craftax action per tick: every key's meaning, hold to act, looking and turning, the touch pad with Use and Sleep, what a click aims at, walking to a clicked target (digging through, the nearest shore), and the tool picked for the action.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/input/intent.ts</code>, <code>keyboard.ts</code>, <code>pointer.ts</code>, <code>touch.ts</code>, <code>aim.ts</code>, <code>targets.ts</code>, <code>pathing.ts</code></dd>
+<dt>Depends on</dt><dd>core (the API), UI, render, world</dd>
+<dt>Extension points</dt><dd>None.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>HUD, UI and screens</h3>
+<p>The HUD (status bars, hotbar, gear, achievement toasts, the E screen for inventory, crafting, potions and magic), flashed messages and hints, touch button layout, and the screens: Settings and its tabs, options, help, the inventory, other worlds and My Worlds, the death screen's retry, screenshots and thumbnails, and the pixel-font titles.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/ui/hud/</code>, <code>src/ui/screens/</code>, <code>src/ui/snapshots.ts</code>, <code>js/hud.ts</code>, <code>js/pixeltitle.ts</code>, <code>src/styles/game.css</code>, <code>phone.css</code></dd>
+<dt>Depends on</dt><dd>core, render, input, looks, the engine bridge, item registry</dd>
+<dt>Extension points</dt><dd>Slot <code>brainView</code> (bot panel); <code>Theme.names</code> and <code>icons</code> change what the HUD shows.</dd>
+</dl>
+</div>
+
+<div class="card c-sys">
+<h3>Sound</h3>
+<p>Mostly synthesized with Web Audio (tones and filtered noise for steps, chopping, mining, combat, ambience), plus CC0 recorded clips for creature voices. Positioned sounds pan and fade with distance. A gate thins sounds when a fast bot plays, so the browser's audio never floods. Replay videos render the sound offline.</p>
+<dl>
+<dt>Key files</dt><dd><code>src/sound/core.ts</code> (the <code>Sound</code> class), <code>world.ts</code>, <code>creatures.ts</code>, <code>events.ts</code>, <code>ambient.ts</code>, <code>gate.ts</code>, <code>common.ts</code>; <code>js/sound.ts</code>; <code>public/sounds/</code></dd>
+<dt>Depends on</dt><dd>themes (theme sounds), core events</dd>
+<dt>Extension points</dt><dd><code>Theme.sounds</code>: replace or silence any named effect (<code>"moo"</code>, <code>"hit:cow"</code>…), routed by <code>gate.ts</code>.</dd>
+</dl>
+</div>
+
+<div class="card c-out">
+<h3>Replay: recording and the replay page</h3>
+<p>A recording is the engine's whole state where it began (an 84 KB snapshot), every op made after it with its time, and the camera ten times a second; the deterministic engine plays it back exactly. The replay page plays a recording in the game page (an iframe), trims it, sets camera keyframes, and shares it as a file, an MP4 (WebCodecs + mp4-muxer), a screenshot, or a link.</p>
+<dl>
+<dt>Key files</dt><dd><code>js/record.ts</code>, <code>src/replay/recording.ts</code>, <code>js/replay-page.ts</code>, <code>src/replay/page/</code> (<code>open</code>, <code>keyframes</code>, <code>transport</code>, <code>side</code>, <code>share</code>, <code>video</code>), <code>js/film.ts</code>, <code>replay.html</code>, <code>vendor/mp4-muxer/</code>, <code>src/styles/replay.css</code></dd>
+<dt>Depends on</dt><dd>engine bridge (ops), views, looks, themes, UI</dd>
+<dt>Extension points</dt><dd>Slot <code>replayStore</code> (share by link, short links, embeds).</dd>
+</dl>
+</div>
+
+<div class="card c-core">
+<h3>Telemetry</h3>
+<p>Decides what happened (starts, achievements, floors, the bot taking over, the end, each step's actor and action) and keeps per-game totals in localStorage. Where it goes is a plugin's choice. Never sent with debug flags, when Settings' "Send anonymous play statistics" is off, or under Global Privacy Control.</p>
+<dl>
+<dt>Key files</dt><dd><code>js/telemetry.ts</code></dd>
+<dt>Depends on</dt><dd>core</dd>
+<dt>Extension points</dt><dd>Slot <code>telemetry</code> (one provider).</dd>
+</dl>
+</div>
+
+</div>
+
+<h2 id="plugins">6. The bundled plugins</h2>
+<div class="cards">
+
+<div class="card c-kit">
+<h3>Winter <span class="mut">plugins/winter</span></h3>
+<p>A theme: snow lying on the overworld and falling from a pale sky, fir crowns with snow on their layers, drifts round a few lone trees, a light dusting on ore, cows as reindeer (name, model, sounds; one in ten with a glowing red nose), zombies in torn flannel. Only the overworld; near lava the snow has melted.</p>
+<dl><dt>Fills</dt><dd><code>theme</code> (uses <code>paint</code>, <code>tiles</code>, <code>tile</code>, <code>decorate</code>, <code>crown</code>, <code>creatures</code>, <code>names</code>, <code>sounds</code>, <code>sky</code>, <code>weather</code>)</dd>
+<dt>Install</dt><dd><code>plugins: [winter()]</code>; <code>winter({ default: true })</code> starts players in it.</dd></dl>
+</div>
+
+<div class="card c-kit">
+<h3>Ruins <span class="mut">plugins/ruins</span></h3>
+<p>A theme: the overworld's rock and ore drawn as ruined college stonework under a soft grey sky. Broken walls on an old building's lines, rubble elsewhere, many kinds of weathered stone; each ore its own recognizable piece of the old buildings. Its building-stone painters are shared with Oxford.</p>
+<dl><dt>Fills</dt><dd><code>theme</code></dd><dt>Install</dt><dd><code>plugins: [ruins()]</code>; <code>ruins({ default: true })</code>.</dd></dl>
+</div>
+
+<div class="card c-kit">
+<h3>Tropical <span class="mut">plugins/tropical</span></h3>
+<p>A theme: palm trees (eight, reused and turned; tall, middle and short), beaches fading into the grass over four tiles, volcanic rock and red clay on the overworld, cows as pigs (recorded CC0 grunts and squeals), skeletons in grass skirts, zombies in faded Hawaiian shirts and board shorts, you in shorts.</p>
+<dl><dt>Fills</dt><dd><code>theme</code> (uses <code>tiles</code>, <code>paint</code>, <code>tile</code>, <code>trunk</code>, <code>crown</code>, <code>crownPick</code>, <code>grassAt</code>, <code>flowers</code>, <code>creatures</code>, <code>player</code>, <code>names</code>, <code>sounds</code>)</dd>
+<dt>Install</dt><dd><code>plugins: [tropical()]</code>; <code>tropical({ default: true })</code>.</dd></dl>
+</div>
+
+<div class="card c-kit">
+<h3>University <span class="mut">plugins/university</span></h3>
+<p>A scene pack with set pieces: <code>?scene=oxford</code> puts Radcliffe Square on an edge of the map (the Camera half past the edge, its lawn, railing and avenue written into the engine's map); <code>?scene=campus</code> a college campus seen across the water. Built from block models turned to the first side with no ladder.</p>
+<dl><dt>Fills</dt><dd><code>setPieces</code> (imports Ruins' tiles)</dd><dt>Install</dt><dd><code>plugins: [university(), ruins()]</code>; <code>university({ default: true })</code>.</dd></dl>
+</div>
+
+<div class="card c-kit">
+<h3>Autumn <span class="mut">examples/plugins/autumn.js</span></h3>
+<p>A sample a player adds by hand (Settings → World → Add plugin…), as a file or by its address: orange, red and gold trees, dry grass, a warmer sky, falling leaves. One plain file with nothing to import: it uses <code>host.three</code>.</p>
+<dl><dt>Fills</dt><dd><code>theme</code></dd><dt>Loaded by</dt><dd><code>src/core/user-plugins.ts</code>, not the config.</dd></dl>
+</div>
+
+<div class="card c-kit">
+<h3>craftax-crystal <span class="mut">sibling repo</span></h3>
+<p>Crystal players: trained optical glass, simulated in the browser on WebGPU by the <code>neuralcrystal</code> package. Listed in a host's config, never built into the open game.</p>
+<dl><dt>Fills</dt><dd><code>bot</code> (crystals in the picker, own worker and frame), <code>lookView</code> (the crystal's picture: laser in the classic view), <code>brainView</code>, <code>memoryView</code></dd>
+<dt>Imports</dt><dd><code>craftax-3d/…</code> (peer dependency, resolved to <code>../craftax-3d</code>)</dd></dl>
+</div>
+
+</div>
+
+<h2 id="notes">7. Loose ends found while mapping</h2>
+<ul class="notes">
+<li><strong>The <code>view</code> slot is declared but never read.</strong> It's in <code>src/core/plugins.ts</code>'s list table (typed <code>unknown</code>); no module calls <code>listed("view")</code>.</li>
+<li><strong>Game events are declared but never emitted.</strong> <code>GameEvents</code> (<code>ready</code>, <code>state</code>, <code>step</code>, <code>screen</code>) is handed to plugins as <code>host.events</code>, but nothing in <code>src/</code> or <code>js/</code> calls <code>events.emit</code>, so a plugin listening hears nothing.</li>
+<li><strong><code>public/servers.json</code></strong> lists "NeuralCrystal (this machine)" at <code>localhost:8790</code>.</li>
+</ul>
+
+</main></body>
+</html>

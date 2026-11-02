@@ -1,0 +1,84 @@
+/* The line looks' shared rules (laser, phosphor): the HUD, menus and windows as lines on dark, in the ink of the look on screen.
+   body.outline is on in every line look; each look's own css sets the ink (--line-*: laser.css red, phosphor.css green) and adds
+   only its own rules. Loaded after game, menus, phone, color, before laser and phosphor (index.html). */
+/* ---------- the game page: the HUD, screens, E screen, bot panel (beside game.css) ---------- */
+body.outline #btn-inv { color: var(--line); background: var(--line-fill); border-color: var(--line); }
+body.outline #hotbar.docking .slot.dock { background: var(--line-dock); border-color: var(--line); box-shadow: 0 0 0 2px #000, 0 0 12px rgba(var(--line-rgb),.8); }
+body.outline #seg-who.docking button.dock, body.outline #looks.docking button.dock { background: var(--line-dock); border-color: var(--line); box-shadow: 0 0 0 2px #000, 0 0 12px rgba(var(--line-rgb),.8); }
+body.outline #res .slot { background: var(--line-fill); }
+body.outline #botpanel .brain-opt input[type=checkbox] { background: var(--line-fill); border-color: var(--line-frame); box-shadow: none; }
+body.outline .ench-note { color: inherit; }
+body.outline .cell.picked { outline-color: currentColor; }
+/* ---------- the HUD, the menus' windows, Research, the loading bar, the badge (beside menus.css) ---------- */
+body.outline #info, body.outline #slotname, body.outline #hint, body.outline .slot .n, body.outline .slot .k, body.outline .toast, body.outline .menu p, body.outline .menu h1 { color: var(--line); text-shadow: var(--line-glow); }
+/* the status panel: frames, labels, the depth pips, dial and achievement bar in the ink (nothing grey or yellow) */
+body.outline #info .plaque, body.outline #info .chips, body.outline #info .ach { background: var(--line-fill); border-color: var(--line-frame); }
+body.outline #info .banner { background: var(--line-fill); border-color: var(--line); }
+body.outline #info .day, body.outline #info .chip em, body.outline #info .ach .step { color: var(--line); }
+body.outline #info .pips i.done { background: var(--line-frame-soft); }
+body.outline #info .pips i.here { box-shadow: 0 0 4px var(--line); }
+body.outline #info .dial.sun { box-shadow: 0 0 5px var(--line); }
+body.outline #info .ach .bar { background: rgba(var(--line-rgb),.1); }
+body.outline #info .banner { color: var(--line-hi); }
+body.outline #hotbar { background: var(--line-fill); border-color: var(--line); box-shadow: var(--line-box); }
+body.outline .slot { background: var(--line-fill); }
+body.outline .slot.sel { border-color: var(--line); }
+body.outline #cross { mix-blend-mode: normal; }
+body.outline #cross::before, body.outline #cross::after { background: var(--line); box-shadow: var(--line-glow); }
+body.outline .seg span, body.outline .seg button, body.outline #btn-mem, body.outline .bar .zzz { color: var(--line); background: var(--line-fill); border-color: var(--line-frame); text-shadow: var(--line-glow); }
+body.outline .seg .hi-edge { stroke: currentColor; }
+/* the white and grey button icons (screenshot, settings, pause, the bot window's) tinted in the ink (--line-tint: #laser-tint, #phos-tint);
+   the who-plays heads and the art buttons keep their colours */
+body.outline #topbar .seg:not(#seg-who) svg, body.outline #botpanel .seg svg, body.outline #botpanel .head-btns svg { filter: var(--line-tint); }   /* (the 3/4 cube's top edge in the ink, not yellow) */
+body.outline .seg button.on { position: relative; z-index: 1; }
+body.outline .seg button:not(.on) { box-shadow: none; opacity: .75; }
+body.outline .toast { background: var(--line-fill); border-color: var(--line); box-shadow: var(--line-box); }
+body.outline .toast b { color: var(--line-hi); }
+body.outline button.mc { color: var(--line); background: var(--line-fill); border-color: var(--line-frame); box-shadow: var(--line-box); text-shadow: var(--line-glow); }
+body.outline button.mc:hover:not(:disabled) { background: var(--line-fill-hi); }
+body.outline #panel .win { background: var(--line-fill); color: var(--line); border: 2px solid var(--line-frame); }
+body.outline #panel h2 { text-shadow: var(--line-glow); }
+body.outline .cell { background: var(--line-fill); }
+body.outline .cell .n { color: var(--line); text-shadow: var(--line-glow); }
+body.outline .recipe { background: var(--line-fill); color: var(--line); }
+body.outline .recipe:hover:not(:disabled) { background: var(--line-fill-hi); }
+body.outline #gear .slot { background: var(--line-fill); }
+/* the bot window: an outline in the ink (not grey), the name and the speed / temperature sliders in it too (Pete f444) */
+body.outline #botpanel { border-color: var(--line-frame); color: var(--line); text-shadow: none; }
+body.outline #botpanel .temp b { color: var(--line-hi); }
+body.outline #botpanel input[type=range] { background: var(--line-fill); box-shadow: none; }
+body.outline #botpanel input[type=range]::-webkit-slider-thumb { border-color: #000; box-shadow: inset 0 0 0 2px var(--line); }
+body.outline #botpanel input[type=range]::-moz-range-thumb { border-color: #000; box-shadow: inset 0 0 0 2px var(--line); }
+body.outline #botpanel input[type=range]:hover::-webkit-slider-thumb { background: var(--line); }
+/* the Add your agent window: in the ink, as the E screen */
+body.outline .ask.agentpop .menu { color: var(--line); border-color: var(--line-frame); }
+body.outline .agentpop input, body.outline .agentpop textarea { background: rgba(0,0,0,.5); color: var(--line-hi); border-color: var(--line-frame-soft); }
+body.outline .agentpop input:focus { outline: 2px solid var(--line); outline-offset: 0; }
+body.outline .agentpop .err { color: var(--line-hi); }
+body.outline .agentpop .x { background: var(--line-fill); border-color: var(--line-frame); box-shadow: none; }
+body.outline .agentpop .x path { fill: var(--line); }
+body.outline #help kbd { text-shadow: var(--line-glow); background: var(--line-fill); border-color: var(--line); }
+body.outline #research .cp { color: var(--line); border-color: var(--line-frame-soft); }
+body.outline #research .win { background: var(--line-fill); border-color: var(--line-frame); }
+body.outline #research .tabs, body.outline #help .tabs, body.outline #settings .tabs { border-color: var(--line-frame-soft); }
+body.outline #research .tab, body.outline #help .tab, body.outline #settings .tab { color: var(--line); background: var(--line-fill); border-color: var(--line-frame-soft); box-shadow: none; text-shadow: var(--line-glow); }
+body.outline #research .tab:hover:not(.on), body.outline #help .tab:hover:not(.on), body.outline #settings .tab:hover:not(.on) { background: var(--line-fill-hi); }
+body.outline #research .tab.on, body.outline #help .tab.on, body.outline #settings .tab.on { color: var(--line-hi); border-color: var(--line); }
+body.outline .loadbar { border-color: var(--line-frame); }
+body.outline #credit { border-color: var(--line-frame-soft); }
+body.outline #settings .plugwin { background: var(--line-fill); color: var(--line); border-color: var(--line-frame); }
+body.outline #settings .plugwin small { color: var(--line) !important; text-shadow: none; }
+body.outline #settings .plugline input[type=url] { background: var(--line-fill); border-color: var(--line-frame); box-shadow: none; }
+/* ---------- phones and touch screens (beside phone.css) ---------- */
+body.outline #tsleep { color: var(--line); }
+body.outline #tpad .slot, body.outline #tuse { color: var(--line); }
+body.outline #swipe div { color: var(--line); text-shadow: var(--line-glow); }
+body.outline #btn-pads { color: var(--line); border-color: var(--line-frame); background: var(--line-fill); }
+body.outline #btn-retry, body.outline #panel .card .go:not(:disabled) { border-color: var(--line); }
+body.outline #mload { color: var(--line); border-color: var(--line); background: var(--line-fill); }
+body.outline #mload .bar i { background: var(--line); }
+body.outline #settings .agents .score { color: var(--line-hi); }
+body.outline #settings .agents button { color: var(--line); }
+body.outline #settings .agents button.on { border-color: var(--line); }
+body.outline input[type="checkbox"] { background-color: var(--line-fill); border-color: var(--line-frame); }
+body.outline #settings .snote { color: var(--line); }

@@ -1,0 +1,79 @@
+/* Keycaps, the Research screen, the loading bar and the badge, Add plugin's window. Loaded in this order: game, menus, phone, then each
+   look's own (src/looks/<look>/<look>.css; index.html). */
+/* the menus' windows and their controls (settings, controls, My Worlds, servers) */
+/* the pixel title, tagline and Zzz (drawn green by pixeltitle.js): a soft glow */
+#help .win { background: rgba(0,0,0,.8); border: 2px solid #555; padding: 16px 20px; font-size: 14px; line-height: 1.6; max-width: 560px; max-height: 88vh; overflow-y: auto; }
+/* keys as pixel-art keycaps, the game's button style: square, flat grey, a lit top-left edge, a shaded bottom-right one and
+   a hard black lip under them (no gradients, no blur, no rounding) */
+#help kbd { display: inline-block; min-width: 1.5em; padding: 0 6px 2px; margin: 1px 0 3px; text-align: center; font: inherit; font-size: 12px; line-height: 1.6;
+  color: #fff; text-shadow: 1px 1px 0 #3f3f3f; background: #6f6f6f; border: 2px solid #000; border-radius: 0;
+  box-shadow: inset 2px 2px 0 #aaa, inset -2px -3px 0 #4a4a4a, 0 2px 0 #000; vertical-align: 1px; }
+/* the Research screen (research.js): the Controls window's look, wider, scrolling inside; links in the menu's yellow */
+#research .win { background: rgba(0,0,0,.8); border: 2px solid #555; padding: 16px 20px; font-size: 14px; line-height: 1.5; width: min(720px, 92vw); max-height: 86vh; overflow-y: auto; }
+#research h3 { margin: 16px 0 4px; font-size: 18px; color: var(--hi); text-shadow: 2px 2px 0 #3f3f00; }
+#research .research-btns { width: 100%; margin-top: 14px; display: none; } #research:has(#research-tabs .tab.on[data-tab="agents"]) .research-btns { display: block; } #research .research-btns .mc { width: 100%; } #research ol { margin: 6px 0 4px; padding-left: 0; list-style: none; counter-reset: step; } #research li { margin: 3px 0; position: relative; padding-left: 24px; counter-increment: step; } #research ol > li::before { content: counter(step) "."; position: absolute; left: 0; }   /* the numbers inside the margin, under the heading's first letter (Pete) */
+#research code { background: #333; border: 1px solid #555; padding: 0 4px; font-size: 13px; }
+#research .cp { display: inline-grid; place-items: center; vertical-align: middle; width: 24px; height: 22px; padding: 0; margin-left: 2px; cursor: pointer;
+  color: #ddd; background: #3a3a3a; border: 1px solid #666; } #research .cp:hover { color: #fff; border-color: #aaa; }
+#research .cp.done { color: #7dff7d; border-color: #7dff7d; }   /* copied */
+/* with the brain showing, the list opens over it (not pushing the panel taller): from under the bot's name down, scrolling if long */
+/* its close box: a pixel X kept in the window's top right corner while the list scrolls under it */
+.agentpop .x { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+  background: #6f6f6f; border: 2px solid #000; box-shadow: inset 2px 2px 0 #aaa, inset -2px -2px 0 #444; padding: 0; }
+.agentpop .x:hover { background: #7c86b8; box-shadow: inset 2px 2px 0 #bcc4f0, inset -2px -2px 0 #4a5288; } .ask.agentpop .menu { position: relative; }
+#research .x, #panel .x, #settings .x, #help .x { position: sticky; top: 0; float: right; margin: -6px -10px 0 8px; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+  background: #6f6f6f; border: 2px solid #000; box-shadow: inset 2px 2px 0 #aaa, inset -2px -2px 0 #444; padding: 0; z-index: 1; }
+#panel .x { margin: -10px -12px -8px 8px; top: -14px; }   /* up in the corner, clear of the first row of slots (top: sticky may then ride up into the padding) */
+#research .x:hover, #panel .x:hover, #settings .x:hover, #help .x:hover { background: #7c86b8; box-shadow: inset 2px 2px 0 #bcc4f0, inset -2px -2px 0 #4a5288; }
+/* its tabs (Papers, Agents, Repos): game buttons in a row on a rule, left of the close box; the open one pressed in, yellow */
+#research .tabs, #help .tabs, #settings .tabs { display: flex; gap: 6px; margin: -6px 0 6px; padding-bottom: 8px; border-bottom: 2px solid #555; }
+#research .tab, #help .tab, #settings .tab { font: inherit; font-size: 15px; color: #fff; text-shadow: 2px 2px 0 #3f3f3f; padding: 6px 14px; cursor: pointer;
+  background: #6f6f6f; border: 2px solid #000; box-shadow: inset 2px 2px 0 #aaa, inset -2px -3px 0 #555; }
+#research .tab:hover:not(.on), #help .tab:hover:not(.on), #settings .tab:hover:not(.on) { background: #7c86b8; box-shadow: inset 2px 2px 0 #bcc4f0, inset -2px -3px 0 #4a5288; }
+#research .tab.on, #help .tab.on, #settings .tab.on { color: var(--hi); text-shadow: 2px 2px 0 #3f3f00; background: #3a3a3a; box-shadow: inset 2px 2px 0 #222, inset -2px -2px 0 #5a5a5a; cursor: default; }
+#research .entry { padding: 10px 0; border-bottom: 2px solid #333; } #research .entry b { font-size: 15px; }
+#research .tab { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; line-height: 1.75; -webkit-font-smoothing: none; }   /* Papers / Agents / Repos: the pixel font, like Settings' tabs */
+#research .tabs { margin-top: 0; }   /* as Settings' and Controls': the row starts at the padding edge, level with the close box */
+#research .x, #settings .x, #help .x { top: 5px; }   /* centered on the 44 px pixel-font tab row (sticky: top, not the margin, places it) */
+#research .head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; }   /* an agent's completion: the number each is judged by, big at the right (Pete) */
+@media (max-width: 720px) and (orientation: portrait) { #research .head { flex-direction: column; align-items: flex-start; gap: 0; } }   /* upright: the completion on its own line under the name (Pete) */
+#research .compl { font-size: 13px; color: #a0a0a0; white-space: nowrap; } #research .compl big { font-size: 20px; font-weight: bold; color: var(--hi); margin-right: 2px; }   /* Research stays in the readable font (Pete) */
+#research p { margin: 3px 0; } #research .meta { color: #a0a0a0; font-size: 13px; }
+#research .links a { color: var(--hi); margin-right: 14px; text-decoration: none; border-bottom: 2px solid rgba(255,255,85,.35); }
+#research .links a:hover { border-bottom-color: var(--hi); }
+#research .meta a.by { color: var(--hi); text-decoration: none; border-bottom: 2px solid rgba(255,255,85,.35); } #research .meta a.by:hover { border-bottom-color: var(--hi); }   /* who made a repo: yellow, as the links (Pete) */
+#help table td:first-child { padding-right: 18px; white-space: nowrap; color: #fff; }
+#help table td:last-child { white-space: nowrap; }   /* each explanation one line, level with its keys (Pete); on a phone a size down */
+@media (max-width: 720px) { #help table td:last-child { font-size: 12px; } }
+#help .settings { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; margin-top: 14px; padding-top: 12px; border-top: 1px solid #444; } #help .settings label { display: flex; align-items: center; gap: 10px; }
+#help .hnote { font-size: 12px; color: #aaa; margin: 14px 0 0; }
+#help .hbtns { display: flex; gap: 10px; margin-top: 14px; } #help .hbtns .mc { flex: 1; margin: 0; } #help .hbtns .mc[hidden] { display: none; }   /* Settings beside Back (Pete) */
+#help .tabs, #settings .tabs { margin-top: 0; }
+/* while the 3D side loads, the title and menu show at once (over the dark page), the buttons resting until the game is ready
+   (main.js adds body.ready); #loading only speaks up if the engine can't start */
+/* the start menu's loading bar (main.js boot): a slotted bar filling block by block, LOADING in the pixel font over it */
+.loadbar { position: relative; width: 300px; max-width: 100%; height: 26px; box-sizing: border-box; border: 2px solid #8b8b8b; background: rgba(0,0,0,.55); margin-bottom: 4px; }
+.loadbar i { position: absolute; left: 2px; top: 2px; bottom: 2px; width: 6%; max-width: calc(100% - 4px); transition: width 3.2s cubic-bezier(.15,.8,.3,1);
+  background: repeating-linear-gradient(90deg, rgba(48,255,97,.4) 0 10px, rgba(11,58,24,.5) 10px 12px); }   /* phosphor-green blocks with a dark seam: a pixel bar, the green the world first shows in, see-through so the white "Loading" reads over it (Pete) */
+.loadbar canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.loadbar.done { display: none; }
+#start .menu { position: relative; } #start-status { position: absolute; bottom: calc(100% + 48px); left: 50%; transform: translateX(-50%); margin: 0; }   /* well above the title (Pete), out of the menu's flow: nothing moves when it goes (Pete) */
+@media (max-height: 32.5em) and (orientation: landscape) { #start-status { bottom: calc(100% + 14px); } }   /* a phone on its side: no room up there, under the top bar */
+/* a small badge, not a watermark (Pete): a dark plate with a thin pixel border, like a tag you can click; brightens on hover */
+#credit { display: inline-flex; align-items: center; gap: 6px; margin-top: 22px; padding: 5px 10px 5px 7px; opacity: .8; text-decoration: none;
+  background: rgba(0,0,0,.55); border: 2px solid rgba(139,139,139,.6); box-shadow: inset 0 0 0 1px rgba(0,0,0,.6);   /* grey at rest; purple only on hover (Pete) */
+  transition: opacity .15s, border-color .15s, background .15s, box-shadow .15s; }
+#credit:hover, #credit:focus-visible { opacity: 1; border-color: #b49cff; background: rgba(40,30,70,.75); box-shadow: 0 0 16px 3px rgba(150,110,255,.75), inset 0 0 0 1px rgba(0,0,0,.6); }   /* hover: a purple glow all round */
+#credit .two { display: none; flex-direction: column; align-items: flex-start; gap: 2px; }
+@media (max-height: 32.5em) and (orientation: landscape) {   /* a phone on its side: beside the menu, not over the hotbar; two lines and a bigger orb (Pete) */
+  #credit { position: fixed; right: 16px; top: 50%; transform: translateY(-50%); margin: 0; z-index: 2; gap: 8px; }
+  #credit svg { width: 40px; height: 40px; } #credit .one { display: none; } #credit .two { display: flex; }
+}   /* a phone on its side: beside the menu, not over the hotbar (Pete) */
+@media (hover: none), (pointer: coarse), (max-width: 720px), (max-height: 520px) { #credit { opacity: 1; } }   /* phone sizes too, so a desktop preview matches */ body.touch #credit { opacity: 1; }   /* no hover on a touch screen: full brightness (Pete) */ #credit svg { image-rendering: pixelated; }
+.px-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* a pixel label's own text, for screen readers */
+button.mc canvas { display: block; margin: 0 auto; pointer-events: none; }
+#loading { display: none; position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; padding: 8px 14px; background: rgba(0,0,0,.8); border: 2px solid #555; font-size: 14px; }
+#loading.err { display: block; }
+body:not(.ready) #start .menu button { opacity: .45; pointer-events: none; }
+:is(#start, #dead) button.mc:not([data-px]), #dead-seed:not([data-px]) { color: transparent !important; text-shadow: none !important; }   /* no label till it's drawn in the pixel font (main.js pixelButton): no font swapping in front of you (Pete) */
+:is(#start, #dead) button.mc { height: 46px; display: grid; place-items: center; }   /* one height, empty or labelled: a pixel label with a descender (My Worlds) is 24 px, Play 20 (Pete: they grew once drawn) */

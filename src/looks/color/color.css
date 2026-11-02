@@ -1,0 +1,8 @@
+/* The color look's own rules: the HUD's white labels, kept off the line looks' dark plates. Loaded after game, menus, phone (index.html). */
+/* ---------- the game page: the HUD, screens, E screen, bot panel (beside game.css) ---------- */
+body.color #hotbar .slot .k, body.color #hotbar .slot .n { color: #fff; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, 2px 2px 0 #000; }   /* (laser and phosphor keep their own colours) */
+body.color #res .slot .n { color: #fff; text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, 1px 1px 0 #000; }
+/* ---------- phones and touch screens (beside phone.css) ---------- */
+body.color #research .entry b { color: #fff; }
+body.color #research .entry p:not(.meta), body.color #research .entry li { color: #d4d4d4; }
+body.color #research .meta { color: #ababab; }

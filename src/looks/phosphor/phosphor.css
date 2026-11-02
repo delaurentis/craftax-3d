@@ -1,0 +1,129 @@
+/* The phosphor look: the HUD, menus and windows in the scene's green ink (#30ff61), the gravestone in characters. The line looks'
+   shared rules are in src/looks/shared/outline.css (body.outline), in this ink; here, phosphor's own. Loaded last, after game, menus,
+   phone, color, outline, laser (index.html). */
+/* the ink (outline.css), in the scene's (main.js uInk): as laser's, plus a dim green (--line-dim) its frames are drawn in. No page-wide
+   filter: every part is drawn green itself, the panels near-black green, the glows soft; the bot window's brain keeps its own colours */
+body.phosphor { --line-dim: #1c8f3d; --line: #30ff61; --line-hi: #c8ffd6; --line-frame: var(--line-dim); --line-frame-soft: var(--line-dim); --line-fill: rgba(3,14,6,.85); --line-fill-hi: rgba(8,40,18,.9); --line-glow: 0 0 3px rgba(48,255,97,.7), 0 0 8px rgba(48,255,97,.3); --line-box: 0 0 6px rgba(48,255,97,.35); --line-dock: #04200c; --line-tint: url(#phos-tint); --line-rgb: 48, 255, 97; }
+/* ---------- the game page: the HUD, screens, E screen, bot panel (beside game.css) ---------- */
+body.phosphor #hover2d { background: rgba(48,255,97,.16); box-shadow: inset 0 0 0 2px rgba(48,255,97,.6); }   /* and phosphor's green */
+body.phosphor #botpanel .brain-opt { color: var(--line); }
+body.phosphor #botpanel .brain-opt input[type=checkbox]:checked { background: var(--line-fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' shape-rendering='crispEdges'%3E%3Cpath d='M10 0h2v2h-2v2H8v2H6v2H4v2H2V8H0V6h2v2h2V6h2V4h2V2h2z' fill='%2330ff61'/%3E%3C/svg%3E") no-repeat center; }
+body.phosphor #botpanel .brain-opt input[type=checkbox]:hover { border-color: var(--line); }
+body.phosphor .card { border-color: rgba(48,255,97,.45); }
+body.phosphor .card small { color: var(--line); opacity: .75; }
+/* ---------- the HUD, the menus' windows, Research, the loading bar, the badge (beside menus.css) ---------- */
+body.phosphor #info b { color: var(--line-hi); }
+body.phosphor #info .day, body.phosphor #info .chip em, body.phosphor #info .ach .step { opacity: .7; }
+body.phosphor #info .pips i { background: rgba(48,255,97,.14); }
+body.phosphor #info .pips i.here { background: var(--line); }
+body.phosphor #info .dial.sun { background: radial-gradient(circle, var(--line-hi) 30%, var(--line) 70%); }
+body.phosphor #info .dial.moon { background: radial-gradient(circle at 35% 35%, var(--line-hi) 35%, var(--line-dim) 75%); box-shadow: 0 0 4px var(--line-dim); }
+body.phosphor #info .ach .bar { border-color: var(--line-dim); }
+body.phosphor #info .ach .bar i { background: linear-gradient(var(--line-hi), var(--line)); }
+body.phosphor .slot { border-color: rgba(48,255,97,.45); }
+/* selected: a brighter green edge and a soft glow (not a white burst), plainly apart from the rest */
+body.phosphor .slot.sel { outline-color: rgba(48,255,97,.3); box-shadow: 0 0 7px rgba(48,255,97,.55), inset 0 0 4px rgba(48,255,97,.35); }
+/* icons: the colour ones (tools, armour, the inventory, what hit you) in tones of green by their own light and dark (#phos-tint, one
+   image at a time); the blocks' outline drawings come green already (textures.js outlineIconURL's ink); recipes as green outlines (#phos-edge) */
+body.phosphor .slot img, body.phosphor .cell img, body.phosphor #bars img.hiticon, body.phosphor .srow .thumb { filter: url(#phos-tint); opacity: 1; }
+body.phosphor .recipe img { filter: url(#phos-edge); }
+body.phosphor .slot img.lzi, body.phosphor .cell img.lzi { filter: drop-shadow(0 0 2px rgba(48,255,97,.7)); }
+body.phosphor .slot.sel img { filter: brightness(1.2) url(#phos-tint) drop-shadow(0 0 3px rgba(48,255,97,.6)); }
+body.phosphor .slot.sel img.lzi { filter: brightness(1.15) drop-shadow(0 0 3px rgba(48,255,97,.75)); }
+/* what you don't have yet (hotbar, armour row, inventory): a faint dark-green ghost, so what you own stands out */
+body.phosphor .slot.off img, body.phosphor .cell.zero img { filter: url(#phos-tint) brightness(.6); opacity: .3; }
+body.phosphor .slot.off img.lzi, body.phosphor .cell.zero img.lzi { filter: brightness(.6); opacity: .3; }
+/* the bars (drawn green by hud.js): a full heart, drop, food or bolt glows, a half one a little less, an empty one has none */
+body.phosphor #bars img.f2 { filter: drop-shadow(0 0 2px rgba(48,255,97,.75)); }
+body.phosphor #bars img.f1 { filter: drop-shadow(0 0 2px rgba(48,255,97,.45)); }
+body.phosphor #bars img.f0 { filter: none; opacity: .85; }
+body.phosphor .seg button.on { color: var(--line-hi); background: rgba(48,255,97,.2); border-color: var(--line); box-shadow: 0 0 8px rgba(48,255,97,.55), inset 0 0 6px rgba(48,255,97,.3); }
+body.phosphor .seg button:hover { border-color: var(--line); opacity: 1; }
+body.phosphor .bar .zzz:hover, body.phosphor .bar .zzz.on { color: var(--line-hi); border-color: var(--line); background: rgba(48,255,97,.18); box-shadow: 0 0 8px rgba(48,255,97,.55); }
+body.phosphor button.mc:hover:not(:disabled) { color: var(--line-hi); border-color: var(--line); box-shadow: 0 0 9px rgba(48,255,97,.5); }
+body.phosphor button.mc:disabled { color: var(--line-dim); background: var(--line-fill); border-color: rgba(48,255,97,.25); box-shadow: none; text-shadow: none; }
+/* the E screen */
+body.phosphor #panel .win { box-shadow: var(--line-box); }
+body.phosphor #panel .win p { color: var(--line) !important; opacity: .75; }   /* (over its inline grey) */
+body.phosphor .cell { border: 1px solid rgba(48,255,97,.45); }
+body.phosphor .recipe { border: 1px solid rgba(48,255,97,.45); }
+body.phosphor .recipe:hover:not(:disabled) { border-color: var(--line); }
+body.phosphor .recipe small, body.phosphor .recipe .key { color: var(--line); opacity: .65; }
+body.phosphor .agentpop .note.list { border-top-color: var(--line-dim); }
+/* the Add your agent window in phosphor: green as Settings */
+body.phosphor .ask.agentpop .menu { background: var(--line-fill); }
+body.phosphor .agentpop .fld, body.phosphor .agentpop .note { color: var(--line); }
+body.phosphor .agentpop .note a { color: var(--line-hi); }
+body.phosphor .agentpop input::placeholder { color: var(--line-dim); }
+body.phosphor #settings .win, body.phosphor #help .win { background: var(--line-fill); color: var(--line); border-color: var(--line-dim); }
+body.phosphor #settings .shadow, body.phosphor #settings p { color: var(--line) !important; text-shadow: none; }
+body.phosphor #settings #tick-ms, body.phosphor #settings #idle-v, body.phosphor #help table td:first-child { color: var(--line-hi); }
+body.phosphor #help kbd { color: var(--line-hi); box-shadow: inset 2px 2px 0 rgba(48,255,97,.35), inset -2px -3px 0 rgba(0,0,0,.5), 0 2px 0 #031a08; }
+body.phosphor #settings select, body.phosphor #help select { color: var(--line-hi); text-shadow: none; background-color: var(--line-fill); border-color: var(--line-dim); box-shadow: none; }
+body.phosphor #settings select:hover { background-color: var(--line-fill-hi); border-color: var(--line); }
+body.phosphor #settings input[type=checkbox] { background: var(--line-fill); border-color: var(--line-dim); box-shadow: none; }
+body.phosphor #settings input[type=checkbox]:checked { background: var(--line-fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' shape-rendering='crispEdges'%3E%3Cpath d='M10 0h2v2h-2v2H8v2H6v2H4v2H2V8H0V6h2v2h2V6h2V4h2V2h2z' fill='%2330ff61'/%3E%3C/svg%3E") no-repeat center; }
+body.phosphor #settings input[type=range] { background: var(--line-fill); border-color: var(--line-dim); box-shadow: none; }
+body.phosphor #botpanel input[type=range] { border-color: var(--line-dim); }
+body.phosphor #settings input[type=range]::-webkit-slider-thumb { background: var(--line-dim); border-color: #000; box-shadow: inset 0 0 0 2px var(--line); }
+body.phosphor #botpanel input[type=range]::-webkit-slider-thumb { background: var(--line-dim); }
+body.phosphor #settings input[type=range]::-moz-range-thumb { background: var(--line-dim); border-color: #000; box-shadow: inset 0 0 0 2px var(--line); }
+body.phosphor #botpanel input[type=range]::-moz-range-thumb { background: var(--line-dim); }
+body.phosphor #settings input[type=range]:hover::-webkit-slider-thumb { background: var(--line); }
+body.phosphor #saves-list { background: var(--line-fill); border-color: var(--line-dim); box-shadow: none; }
+body.phosphor .srow { border-bottom-color: rgba(48,255,97,.22); }
+body.phosphor .srow .st, body.phosphor .srow .url, body.phosphor .srow .seed, body.phosphor #saves-list .srow .st { color: var(--line); opacity: .75; }
+body.phosphor .srow b { color: var(--line-hi); }
+body.phosphor .srow .thumb { border-color: var(--line-dim); }
+body.phosphor #saves-list .srow.here { border-color: var(--line); background: rgba(48,255,97,.07); }
+body.phosphor #saves-list .srow.here b, body.phosphor #saves-list .srow.here .tag, body.phosphor .srow .tag { color: var(--line-hi); }
+body.phosphor #saves-list .srow.here .tag { border-color: var(--line); }
+body.phosphor .seedrow input, body.phosphor #server-url { color: var(--line-hi); background: #000; border-color: var(--line-dim); box-shadow: none; }
+body.phosphor .seedrow input:focus, body.phosphor #server-url:focus { border-color: var(--line); }
+/* the bot window: green chrome round a brain that keeps its own greens (no filter on it) */
+body.phosphor #botpanel { background: var(--line-fill); }
+body.phosphor #botpanel.big { background: rgb(2,10,4); }
+body.phosphor #botpanel .st, body.phosphor #botpanel .temp { color: var(--line); }
+body.phosphor #botpanel .st { opacity: .7; }
+/* hurt and drink: the screen's edge flashes in the ink, not red or blue */
+body.phosphor #hurt { box-shadow: inset 0 0 160px rgba(48,255,97,.5); }
+body.phosphor #drink { box-shadow: inset 0 0 140px rgba(200,255,214,.35); }
+/* the gravestone in phosphor: cut out of tiny green characters (--code-tile, main.js), its words burning bright (pixeltitle.js draws them
+   green), its outline traced all round, the stepped top too: crisp lines just outside the stone's shape, then a soft glow */
+body.phosphor .tomb { filter: drop-shadow(2px 0 0 var(--line)) drop-shadow(-2px 0 0 var(--line)) drop-shadow(0 -2px 0 var(--line)) drop-shadow(0 0 6px rgba(48,255,97,.45)); }
+body.phosphor .tomb .stone { color: var(--line); background: #020a04 var(--code-tile) repeat; box-shadow: inset 0 0 18px rgba(48,255,97,.18); text-shadow: var(--line-glow); }
+body.phosphor .tomb .stone.coded { background: #020a04 var(--tomb-code) 0 0 / 100% 100% no-repeat; }   /* the stone's own picture, a character per 4 x 6 px (main.js codeStone) */
+body.phosphor .tomb canvas { filter: drop-shadow(0 0 3px rgba(48,255,97,.55)); }
+body.phosphor .tomb .mound { filter: grayscale(1) sepia(1) hue-rotate(75deg) saturate(5) brightness(.75); }
+body.phosphor .tomb .mound.coded { background: var(--mound-code) 0 0 / 100% 100% no-repeat; filter: none; }   /* the heap in characters too (main.js codeMound) */
+body.phosphor canvas[data-pixel-text]:not([data-pixel-engraved]) { filter: drop-shadow(0 0 5px rgba(48,255,97,.35)); }
+body.phosphor #research .cp { background: rgba(48,255,97,.08); }
+body.phosphor #research code { background: rgba(48,255,97,.08); border-color: var(--line-dim); }
+body.phosphor #research .x, body.phosphor #panel .x, body.phosphor #settings .x, body.phosphor #help .x { background: var(--line-fill); border-color: var(--line-dim); box-shadow: none; }
+body.phosphor #research .x path, body.phosphor #panel .x path, body.phosphor #settings .x path, body.phosphor #help .x path { fill: var(--line); }
+body.phosphor #research .x:hover, body.phosphor #panel .x:hover, body.phosphor #settings .x:hover { background: var(--line-fill-hi); border-color: var(--line); }
+body.phosphor #research .tab:hover:not(.on), body.phosphor #help .tab:hover:not(.on), body.phosphor #settings .tab:hover:not(.on) { border-color: var(--line); }
+body.phosphor #research .tab.on, body.phosphor #help .tab.on, body.phosphor #settings .tab.on { background: rgba(48,255,97,.18); box-shadow: 0 0 9px rgba(48,255,97,.5); }
+body.phosphor #research .compl big { color: var(--line-hi); }
+body.phosphor #research .win { color: var(--line); }
+body.phosphor #research h3, body.phosphor #research .links a, body.phosphor #research a.by { color: var(--line-hi); text-shadow: var(--line-glow); }
+body.phosphor #research .meta { color: var(--line-dim); }
+body.phosphor #research .entry { border-color: rgba(48,255,97,.2); }
+body.phosphor .loadbar i { background: repeating-linear-gradient(90deg, var(--line) 0 10px, #0b3a18 10px 12px); }
+body.phosphor #credit { background: var(--line-fill); }
+body.phosphor #settings .plugwin .plugmsg { color: var(--line-hi) !important; }
+body.phosphor #settings .plugline input[type=url] { color: var(--line-hi); }
+/* ---------- phones and touch screens (beside phone.css) ---------- */
+body.phosphor #tsleep::before { background: rgba(48,255,97,.4); }
+body.phosphor #victory .vbox { filter: drop-shadow(0 0 18px rgba(48,255,97,.55)); }   /* laser red, phosphor green */
+body.phosphor #tuse img { filter: url(#phos-tint); }
+body.phosphor #btn-retry, body.phosphor #panel .card .go:not(:disabled) { background: rgba(48,255,97,.28); color: var(--line-hi); box-shadow: 0 0 12px rgba(48,255,97,.6); }
+body.phosphor #settings .agents button { border-color: var(--line-dim); }
+body.phosphor #settings .agents button.on { box-shadow: var(--line-box); }
+body.phosphor input[type="checkbox"]:checked { background-color: rgba(48,255,97,.45); border-color: var(--line); }
+body.phosphor #settings .snote .ico { filter: url(#phos-tint); }
+/* ---------- the simulation's caption (caption.ts): near-white with a green glow; white as the world leaves phosphor ---------- */
+#pcap { color: #e4ffe8; text-shadow: 0 0 10px rgba(42,255,90,.75), 0 0 2px #bfffc8; }
+#pcap.white { color: #fff; text-shadow: 0 0 6px rgba(0,0,0,.6), 2px 2px 0 rgba(0,0,0,.5); }
+#pcap i { font-style: normal; animation: pcapblink .9s steps(2) infinite; }
+@keyframes pcapblink { 50% { opacity: 0; } }

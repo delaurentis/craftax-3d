@@ -1,0 +1,51 @@
+{
+  "name": "craftax-3d",
+  "version": "0.1.0",
+  "description": "Play Craftax in the browser in 3D, first person or from above.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.html",
+    "replay.html",
+    "plugin.ts",
+    "craftax.config.ts",
+    "vite.config.ts",
+    "tsconfig.json",
+    "src/",
+    "js/",
+    "plugins/",
+    "public/",
+    "!public/agent/",
+    "tools/",
+    "vendor/",
+    "README.md",
+    "NOTICE.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "predev": "tsx tools/runtime-files.ts",
+    "dev": "vite",
+    "prebuild": "tsx tools/runtime-files.ts",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "tsc --noEmit && tsx tools/check-sizes.ts && tsx tools/check-plugins.ts",
+    "sizes": "tsx tools/check-sizes.ts"
+  },
+  "dependencies": {
+    "craftax-agents": "^0.1.0",
+    "craftax-wasm": "^0.1.0",
+    "onnxruntime-web": "1.30.0",
+    "three": "0.186.0",
+    "tsx": "4.19.2",
+    "vite": "5.4.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/delaurentis/craftax-3d"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.6",
+    "@types/three": "0.186.0",
+    "typescript": "5.6.3"
+  }
+}

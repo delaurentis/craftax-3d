@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Craftax 3D</title>
+<link rel="stylesheet" href="./src/styles/game.css">
+<link rel="stylesheet" href="./src/styles/menus.css">
+<link rel="stylesheet" href="./src/styles/phone.css">
+<link rel="stylesheet" href="./src/looks/color/color.css">
+<link rel="stylesheet" href="./src/looks/shared/outline.css">
+<link rel="stylesheet" href="./src/looks/laser/laser.css">
+<link rel="stylesheet" href="./src/looks/phosphor/phosphor.css">
+<script>
+// a replay's video (replay.html → Share → Make a video, js/film.js): the page's clock taken over, so each frame is computed at its own
+// moment however long it takes, never a recording of the screen (Pete). Only in ?replay, and only while a video is being made
+// (__film.on); otherwise every call goes straight through. to(t): the clock to t, the timers due by then, then the waiting frames
+if (/[?&]replay\b/.test(location.search)) {
+  const W = window, now = performance.now.bind(performance), raf = W.requestAnimationFrame.bind(W), caf = W.cancelAnimationFrame.bind(W),
+        st = W.setTimeout.bind(W), ct = W.clearTimeout.bind(W), si = W.setInterval.bind(W), ci = W.clearInterval.bind(W);
+  const F = W.__film = { on: false, t: 0, off: 0, id: 1 << 30, frames: new Map(), timers: new Map(), native: new Map(),
+    start() { this.t = now() + this.off; this.on = true; },
+    to(t) {
+      for (;;) {
+        let id = 0, x = null;
+        for (const [i, y] of this.timers) if (y.at <= t && (!x || y.at < x.at)) { id = i; x = y; }
+        if (!x) break;
+        this.t = Math.max(this.t, x.at);
+        if (x.every) x.at += x.every; else this.timers.delete(id);
+        try { x.f(...x.a); } catch (e) { console.error(e); }
+      }
+      this.t = t;
+      const fs = [...this.frames.values()]; this.frames.clear();
+      for (const f of fs) try { f(t); } catch (e) { console.error(e); }
+    },
+    stop() {                                                               // (the clock goes on from where the video left it)
+      this.on = false; this.off = this.t - now();
+      for (const [id, f] of this.frames) this.native.set(id, raf((ts) => f(ts + this.off)));
+      for (const [id, x] of this.timers) this.native.set(id, x.every ? si(x.f, x.every, ...x.a) : st(x.f, Math.max(0, x.at - this.t), ...x.a));
+      this.frames.clear(); this.timers.clear();
+    },
+  };
+  performance.now = () => (F.on ? F.t : now() + F.off);
+  W.requestAnimationFrame = (f) => { const id = ++F.id; if (F.on) F.frames.set(id, f); else F.native.set(id, raf((ts) => (F.on ? F.frames.set(id, f) : f(ts + F.off)))); return id; };
+  W.cancelAnimationFrame = (id) => { F.frames.delete(id); if (F.native.has(id)) caf(F.native.get(id)); else caf(id); };
+  const later = (every) => (f, ms = 0, ...a) => { if (!F.on || typeof f !== "function") return every ? si(f, ms, ...a) : st(f, ms, ...a); const id = ++F.id; F.timers.set(id, { f, a, at: F.t + Math.max(0, +ms || 0), every: every ? Math.max(4, +ms || 0) : 0 }); return id; };
+  W.setTimeout = later(false); W.setInterval = later(true);
+  W.clearTimeout = W.clearInterval = (id) => { if (F.timers.delete(id)) return; if (F.native.has(id)) { ct(F.native.get(id)); ci(F.native.get(id)); } else { ct(id); ci(id); } };
+}
+</script>
+
+</head>
+<body class="color">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- phosphor, one image at a time: its luminance → the scene's green ramp (black stays black, mid → ink #30ff61, white → green-white) -->
+  <filter id="phos-tint" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0 .01 .04 .12 .19 .5 .7"/><feFuncG type="table" tableValues="0 .2 .45 .75 1 1 1"/>
+      <feFuncB type="table" tableValues="0 .04 .12 .25 .38 .6 .78"/></feComponentTransfer>
+  </filter>
+  <!-- laser, the same way: luminance → a red ramp (black stays black, mid → laser #ff2a18, white → pale red) -->
+  <filter id="laser-tint" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0"/>
+    <feComponentTransfer><feFuncR type="table" tableValues="0 .2 .45 .75 1 1 1"/><feFuncG type="table" tableValues="0 .02 .06 .12 .17 .4 .6"/>
+      <feFuncB type="table" tableValues="0 .01 .04 .08 .1 .32 .5"/></feComponentTransfer>
+  </filter>
+  <filter id="laser-edge" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="grow"/>
+    <feComposite in="grow" in2="SourceAlpha" operator="out" result="edge"/>
+    <feFlood flood-color="#ff2a18"/><feComposite in2="edge" operator="in" result="line"/>
+    <feGaussianBlur in="line" stdDeviation="1.6" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="line"/></feMerge>
+  </filter>
+  <!-- its phosphor twin: the same outline in the scene's green -->
+  <filter id="phos-edge" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="grow"/>
+    <feComposite in="grow" in2="SourceAlpha" operator="out" result="edge"/>
+    <feFlood flood-color="#30ff61"/><feComposite in2="edge" operator="in" result="line"/>
+    <feGaussianBlur in="line" stdDeviation="1.6" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="line"/></feMerge>
+  </filter>
+</svg>
+<canvas id="view"></canvas>
+<img id="view2d" alt="">
+<div id="hover2d"></div>
+<div id="topbar">
+  <div class="seg" id="seg-who"><button data-who="human" aria-label="You play (P)" data-tip="You play (P)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><rect x="4" y="3" width="12" height="14" fill="#c8946a"/><rect x="4" y="3" width="12" height="4" fill="#4a2e1a"/><rect x="4" y="7" width="2" height="2" fill="#4a2e1a"/><rect x="14" y="7" width="2" height="2" fill="#4a2e1a"/><rect x="6" y="9" width="2" height="2" fill="#fff"/><rect x="7" y="9" width="1" height="2" fill="#3a5ab0"/><rect x="12" y="9" width="2" height="2" fill="#fff"/><rect x="12" y="9" width="1" height="2" fill="#3a5ab0"/><rect x="8" y="13" width="4" height="1" fill="#7a4a30"/></svg></button><button data-who="bot" aria-label="Let the bot play (P)" data-tip="Let the bot play (P)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><rect x="9" y="1" width="2" height="3" fill="#9aa"/><rect x="8" y="0" width="4" height="2" fill="#ff4030"/><rect x="3" y="4" width="14" height="13" fill="#8a96a8"/><rect x="3" y="4" width="14" height="2" fill="#b4c0d0"/><rect x="1" y="8" width="2" height="5" fill="#6a7688"/><rect x="17" y="8" width="2" height="5" fill="#6a7688"/><rect x="5" y="8" width="4" height="3" fill="#20e0ff"/><rect x="11" y="8" width="4" height="3" fill="#20e0ff"/><rect x="6" y="13" width="8" height="2" fill="#3a4250"/><rect x="7" y="13" width="1" height="2" fill="#b4c0d0"/><rect x="9" y="13" width="1" height="2" fill="#b4c0d0"/><rect x="11" y="13" width="1" height="2" fill="#b4c0d0"/></svg></button></div>
+  <div class="seg"><button id="btn-capture" aria-label="Capture mouse" data-tip="Capture mouse"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 2h6v1h1v1h1v10h-1v1h-1v1H7v-1H6v-1H5V4h1V3h1z" fill="currentColor" opacity=".25"/><path d="M7 2h6v1h1v1h1v10h-1v1h-1v1H7v-1H6v-1H5V4h1V3h1zM7 3v1H6v10h1v1h6v-1h1V4h-1V3z" fill="currentColor"/><rect x="9" y="3" width="2" height="5" fill="currentColor"/><rect x="5" y="8" width="10" height="1" fill="currentColor"/></svg></button></div>
+  <div class="seg"><button id="btn-top-full" aria-label="Full screen" data-tip="Full screen"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M2 2h6v2H4v4H2zM12 2h6v6h-2V4h-4zM2 12h2v4h4v2H2zM16 12h2v6h-6v-2h4z" fill="#c6c6c6"/></svg></button><button id="btn-rec" hidden aria-label="Record" data-tip="Record"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 4h4v1h2v1h1v2h1v4h-1v2h-1v1h-2v1H8v-1H6v-1H5v-2H4V8h1V6h1V5h2z" fill="#e83a2a"/><rect x="8" y="6" width="2" height="2" fill="#ff9a8a"/></svg></button><button id="btn-shot" aria-label="Screenshot: the view only, no buttons or HUD" data-tip="Screenshot"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 3h6v2h5v12H2V5h5z" fill="#c6c6c6"/><path d="M8 7h4v1h1v1h1v4h-1v1h-1v1H8v-1H7v-1H6V9h1V8h1z" fill="#3a3a3a"/><rect x="9" y="9" width="2" height="4" fill="#c6c6c6"/><rect x="8" y="10" width="4" height="2" fill="#c6c6c6"/><rect x="15" y="6" width="2" height="1" fill="#3a3a3a"/></svg></button><button id="btn-top-settings" aria-label="Settings" data-tip="Settings"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 1h4v3h2V2h2v2h2v2h-2v2h3v4h-3v2h2v2h-2v2h-2v-2h-2v3H8v-3H6v2H4v-2H2v-2h2v-2H1V8h3V6H2V4h2V2h2v2h2z" fill="#c6c6c6"/><path d="M8 7h4v1h1v4h-1v1H8v-1H7V8h1z" fill="#3a3a3a"/></svg></button><button id="btn-top-menu" aria-label="Pause menu (Esc)" data-tip="Pause menu (Esc)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><rect x="5" y="4" width="3" height="12" fill="#fff"/><rect x="12" y="4" width="3" height="12" fill="#fff"/></svg></button></div>
+</div>
+<div id="looks">
+  <div class="seg" id="seg-view"><button data-view="classic" aria-label="Classic: Craftax's 2D game (C)" data-tip="Classic: Craftax's 2D game (C)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="8" height="8" fill="#5aa83a"/><rect x="10" y="2" width="8" height="8" fill="#3870e8"/><rect x="2" y="10" width="8" height="8" fill="#c8b070"/><rect x="10" y="10" width="8" height="8" fill="#7a7a7a"/><rect x="7" y="7" width="6" height="6" fill="#f0d020"/></svg></button><button data-view="0" aria-label="First-person view (V)" data-tip="First-person view (V)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M2 10 Q10 3 18 10 Q10 17 2 10Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="3" fill="currentColor"/></svg></button><button data-view="2" aria-label="Bird's-eye view: drag to orbit (B)" data-tip="Bird's-eye view: drag to orbit (B)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M10 2 18 6.5 10 11 2 6.5Z" fill="currentColor" opacity=".35"/><path d="M2 6.5V14L10 18.5V11ZM18 6.5V14L10 18.5V11Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path class="hi-edge" d="M10 2 18 6.5 10 11 2 6.5Z" fill="none" stroke="#ffff80" stroke-width="1.6" stroke-linejoin="round"/></svg></button></div>
+  <div class="seg" id="seg-art"><button data-art="color" aria-label="Color Mode (M)" data-tip="Color Mode (M)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M10 2 18 6.5 10 11 2 6.5Z" fill="#6cc04a"/><path d="M2 6.5 10 11V18.5L2 14Z" fill="#8a5a32"/><path d="M18 6.5 10 11V18.5L18 14Z" fill="#6a4426"/><path d="M2 6.5 10 11 18 6.5V8.3L10 12.8 2 8.3Z" fill="#4e9a34"/><path d="M10 2 18 6.5 10 11 2 6.5Z M2 6.5V14L10 18.5 18 14V6.5 M10 11V18.5" fill="none" stroke="#1c140c" stroke-width=".9" stroke-linejoin="round"/></svg></button><button data-art="phosphor" aria-label="Phosphor Mode (M)" data-tip="Phosphor Mode (M)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" style="filter:drop-shadow(0 0 2px #2aff5a)"><text x="10" y="9" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="8" fill="#2aff5a">/#</text><text x="10" y="17" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-weight="700" font-size="8" fill="#bfffc8">0=</text></svg></button><button data-art="laser" aria-label="Laser Mode (M)" data-tip="Laser Mode (M)"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M10 2 18 6.5 10 11 2 6.5Z M2 6.5V14L10 18.5 18 14V6.5 M10 11V18.5" fill="#3a1410" stroke="#ff2a18" stroke-width="1.4" stroke-linejoin="round" style="filter:drop-shadow(0 0 2px #ff2a18)"/></svg></button></div>
+</div>
+<canvas id="mem-l" class="mem"></canvas><canvas id="mem-r" class="mem"></canvas>
+<div id="cross"></div>
+<div id="dark"></div>
+<div id="zzz" aria-hidden="true"><canvas data-pixel-text="Zzzzzz..." data-pixel-size="12" aria-label="Sleeping" role="img"></canvas></div>
+<div id="hurt"></div>
+<div id="drink"></div>
+<div id="info"></div>
+<div id="gear"></div>
+<div id="res"></div>
+<div id="toasts"></div>
+<div id="botpanel"></div>
+<div id="hint"></div>
+<div id="boss" aria-live="polite"></div>
+<div id="mload"><span></span><div class="bar"><i></i></div></div>
+<div id="swipe"><div><b>↑</b>Swipe up to play full screen</div></div>
+<!-- touch screens: a move pad (left thumb), Use (right thumb); drag the view with the other finger to look; a tap acts where it lands -->
+<button id="btn-pads" aria-label="Hide or show the touch controls" data-tip="Touch controls"><svg class="hide" viewBox="0 0 12 12" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 0h2v2H5zM2 3h2v2H2zM5 3h2v2H5zM8 3h2v2H8zM5 6h2v2H5z" fill="currentColor" opacity=".55"/><path d="M3 9h6v1H8v1H4v-1H3z" fill="currentColor"/></svg><svg class="show" viewBox="0 0 12 12" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 3h2v2H5zM2 6h2v2H2zM5 6h2v2H5zM8 6h2v2H8zM5 9h2v2H5z" fill="currentColor" opacity=".55"/><path d="M4 0h4v1h1v1H3V1h1z" fill="currentColor"/></svg></button>
+<div id="touch" aria-hidden="true">
+  <div id="tpad"><i class="slot" data-k="KeyW" style="grid-area:1/2"><svg viewBox="0 0 12 12" width="26" height="26" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(0deg)"><path d="M5 2h2v1h1v1h1v1h1v1h1v2H1V6h1V5h1V4h1V3h1z" fill="currentColor"/></svg></i><i class="slot" data-k="KeyA" style="grid-area:2/1"><svg viewBox="0 0 12 12" width="26" height="26" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(-90deg)"><path d="M5 2h2v1h1v1h1v1h1v1h1v2H1V6h1V5h1V4h1V3h1z" fill="currentColor"/></svg></i><i class="slot" data-k="KeyD" style="grid-area:2/3"><svg viewBox="0 0 12 12" width="26" height="26" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(90deg)"><path d="M5 2h2v1h1v1h1v1h1v1h1v2H1V6h1V5h1V4h1V3h1z" fill="currentColor"/></svg></i><i class="slot" data-k="KeyS" style="grid-area:3/2"><svg viewBox="0 0 12 12" width="26" height="26" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(180deg)"><path d="M5 2h2v1h1v1h1v1h1v1h1v2H1V6h1V5h1V4h1V3h1z" fill="currentColor"/></svg></i><i class="slot use-mid" style="grid-area:2/2"><img alt=""></i><i class="slot dig" data-d="KeyW" style="grid-area:1/3"><svg viewBox="0 0 12 12" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(0deg)"><path d="M5 1h2v1h1v1h1v1h1v1H8V4H7V3H5v1H4v1H2V4h1V3h1V2h1zM5 6h2v1h1v1h1v1h1v1H8V9H7V8H5v1H4v1H2V9h1V8h1V7h1z" fill="currentColor"/></svg></i><i class="slot dig" data-d="KeyA" style="grid-area:3/1"><svg viewBox="0 0 12 12" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(-90deg)"><path d="M5 1h2v1h1v1h1v1h1v1H8V4H7V3H5v1H4v1H2V4h1V3h1V2h1zM5 6h2v1h1v1h1v1h1v1H8V9H7V8H5v1H4v1H2V9h1V8h1V7h1z" fill="currentColor"/></svg></i><i class="slot dig" data-d="KeyD" style="grid-area:3/5"><svg viewBox="0 0 12 12" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(90deg)"><path d="M5 1h2v1h1v1h1v1h1v1H8V4H7V3H5v1H4v1H2V4h1V3h1V2h1zM5 6h2v1h1v1h1v1h1v1H8V9H7V8H5v1H4v1H2V9h1V8h1V7h1z" fill="currentColor"/></svg></i><i class="slot dig" data-d="KeyS" style="grid-area:5/3"><svg viewBox="0 0 12 12" width="22" height="22" shape-rendering="crispEdges" aria-hidden="true" style="transform:rotate(180deg)"><path d="M5 1h2v1h1v1h1v1h1v1H8V4H7V3H5v1H4v1H2V4h1V3h1V2h1zM5 6h2v1h1v1h1v1h1v1H8V9H7V8H5v1H4v1H2V9h1V8h1V7h1z" fill="currentColor"/></svg></i></div>
+  <div id="tuse" class="slot"><img alt=""><span>Use</span></div>
+  <div id="tsleep" class="slot"><span class="zzz">Zzz</span><span class="ask-l">Hold to sleep</span></div>
+</div>
+<div id="hud-bottom">
+  <div id="slotname"></div>
+  <div id="bars"></div>
+  <div id="hotrow"><div id="hotbar"></div><button id="btn-inv" aria-label="Inventory and crafting (E)" data-tip="Inventory and crafting (E)"><svg viewBox="0 0 12 12" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="5" width="2" height="2" fill="currentColor"/><rect x="5" y="5" width="2" height="2" fill="currentColor"/><rect x="9" y="5" width="2" height="2" fill="currentColor"/></svg></button></div>
+</div>
+
+<div id="start" class="screen on"><div id="backdrop" aria-hidden="true"><div class="lo"></div><div class="hi"></div></div><script>
+  // the menu's backdrop while the game loads (Pete's picks), a still in colour, 3/4: it
+  // crossfades into the live world, in phosphor at first, then into colour (Pete). A random one, the tall picture (pulled back, as wide
+  // as the desktop one) on a tall screen: a 32 px preview written into the page shows, blurred, on the very first frame, and the full
+  // picture (WebP) sharpens in over it; main.js backdropReveal fades it off the live world. The folder is found from the import map, which the
+  // site's root copy rewrites to /play/
+  (() => {
+    const B = {
+      "meadow-34": ["data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAABQBQCdASogABIAPu1gqE2ppaOiMAgBMB2JbACdL3+agA9V2o9L35jYJtETNEQlT9HFk9AA9945kj4JEyemSuOn08lx4nHyyvFKKUkGSBRqxD1NUX/5gNHGj0oX9NJ8SCPUHANpw4h9tZbV+xJCk23lj3YkpwdYeFAHV/GkpojahMLR2ZGbQH7fVULmp8oMk37ZMuFbqY0k9IDeOcr8rVVnl7QXIvJ7xSAW41mYwpHqyW8uGjf6VUbgaIk4EtSQ48JnN/ssNS+DzgAA", "data:image/webp;base64,UklGRroBAABXRUJQVlA4IK4BAADwCACdASoYADUAPu1uq1EppiOiqAqpMB2JagCnR27WAKB0KNSfT1cBOhuVU4FexU/rqdQq1UVPxnW7nzm2RwI+89N282Dh/W5qWc/ITS7D+AD+9wVWG6esCxAs1Ksf/vHW+4nPFCx3vjjXexXR6seL3y75Bb9A8FN/CsqZwyr0YegDQHKdWpGyZSmwlaD/sKdnoGwgVfyRizeDn9UTwtCR0xrbWVKeToXxNJyg33kuMGCs3vqZ+yUr/fHsOC9ZRfKfOAA1lE4c5R+NkhavYXzqQ8DodTCXYD9zs3paxxagX0BCnHRk4wLDnVbha+qyjhFdpsO44LmBxhwIOnhLQALBxg7b7tpAf1DPBMysDRsdVUcE6wS9MwG3P03kgCWqW1qf1ZWVTbL38joHDCv/3UFhhiR8S/euWtwOHqNWGN/WpwI8u5f+STn88bwx8k6m7IAkKtJpoRpUOX867kzK2zrtJycrAgrY6JxJGSh/ipZGZjas8RNht64hbtTvKYv5w89lnVuPRjlc5pEsGx9l6+3o0KicM/JZxL0+VQ9EjuInddNCTDCNZyrf0YrgAAAA"],
+      "trees-34-1": ["data:image/webp;base64,UklGRtwAAABXRUJQVlA4INAAAAAwBQCdASogABIAPu1mqk2ppaQiMAgBMB2JZgCsMuIyTCNlMUQ5ZpFt/QDmXmF8Z8+6KAD+l34AB7TywMwYzs1HjS9LNOmPtsWsORpRt0U8r/1Dcg2riPMQ0SqVaSAgktoy3atlIQfrwkWcIpGdCoukyqwriqIeFukXtR9S7PMqqccHJFOyR2DOCVU39X+aDDq/8fftCxXwcDa1OEHKOpNRlQFXtP5CiZdBgY0avFfz6grDjWlHIC+iYqLJpHxHKV/RvgNBiUXjQrUGSbXeF8AA", "data:image/webp;base64,UklGRnwBAABXRUJQVlA4IHABAABwCQCdASoYADUAPu1ur1KppiQipAtpMB2JZgCdM3bK2L6ZlFVRRaT9cLIeTe2THbsp+UsIuLWq2palj2YuEAiiSEsfhhbqjOvsL8HnDDLejfLCFfgA/vTOymPL6bUWGRQN0GuB/NKE+lQEVP3xpSx/PdXkvrXuppjPZ0hp3TkqmT4Qj8E5/IVoRvtnED9sCFVPPsYjAiXmJZrLyOCrYFObOca5Qk5Ip3HYHmjqhjekVkHitf5RbblUDN+lmiLttOH1IEXiwgrzJfDnOUv9Rz9QJfpQ3iwmXMYFgr5edF5lh7LfDt2TGXOe6MpaLz9LlGWm2EIflP208DrLyZ1vO0eByfCnKidtHYsh2Tyjyo4H4QxkQI5Z99FZrpk0ytk8zkAT3NDY9JFOSPzgXJ6rESKJWlv4MwJL9kt9WZw3J4FxpKmCpbtH9ao7KiPDiWDJFe13OiXcnQOySDmV6PVLy1oDgOiR0S5OsimrUfhxxUQAAA=="],
+      "trees-34-2": ["data:image/webp;base64,UklGRiQBAABXRUJQVlA4IBgBAAAwBgCdASogABIAPu1gqE2ppaOiMAgBMB2JaACdMoM6A+o6zRDcHeMH299jE/Tikmc4AG/kZAmWpH6AAP1T5iNOuKA7VT6ip8qzQb+2b9IxX7nY6BwHM4/mzJrWHad8fZTPJLKD5m6VkSlfTOuaOhKoRsXzkrfcSWbjWn0HFOqMwZK3O9M2a8GFFvwp2+0lQYptHhktqOmKrzwbtgGK+Ohyy4ySei9LKddZWXO6oaUOuPx4VzXqEufnzRQuDqezE5bBNiDyRCp41ySyltj4vRe03tSVumWWtJ1s01ziOCgHhxms86GzlNZ53y/f5EskV/kPBlootp5wWCybf26uyjihgZAoshuWRQsXja16OU0AMvjWsloPmAAA", "data:image/webp;base64,UklGRtABAABXRUJQVlA4IMQBAAAQCgCdASoYADUAPu1qq1EppaOiqAqpMB2JZgC1G3WEajmlmtu/eiwh/jlZtWq81m6+hePGPNclMcenkd/Cn8QDpzOC6r1+rad3RyN2fQgxkod8qJNpnI78AAD+9wT6RyMqlWnmbB4IQVc2cL176cGwes7eBmW5j7ir17UQ5k7IuOqCn8x1FLr+2nKo8DTiHkh2Q/F/zuQr3D7UmzWYHCHwcBjvAHvWzpfSkeh7jpMbU3OLV39QFYAzPL5Dte2xiyJHRwyrfQW3RiuNY9r+E0Qo5uIuWYrnMrp6QXdqS9z0FP2pF2RcpTUah5LfEb5s84swSeKeNS8Krl86bVI+5bV0ZFeEz9vAzzKLbU2Tj8T5wtydI4TX8F1lras0PrZjTp97UJyaYI68sYt1S/seO3ARNLAoqlKexMdBUTUW+DpLkQr3eKQjZowSV40nGOdQfppJdNSwh3lxYn6VjsuIqg0Hni7HnY4cZg7cQZf/LOUto2qmUctYhUYWtJhLkPIMnyyX7qhmq1igPor6JwzE+3qCA3sLDyg4s3Gq41Q9K19LW4w+Tkinx2yVmiltavNkfPnoKRlkicw1BpUWF8E46y/CtcgAAA=="],
+      "trees-34-low": ["data:image/webp;base64,UklGRtAAAABXRUJQVlA4IMQAAAAwBQCdASogABIAPu1iqU2ppaOiMAgBMB2JaACw7CHiD9pekzlEwuRUavTDOJmy5pE5WAD+5xQMp6bBZV7YTXEHitrYk97H7V4K79NJQ/Q7rvO+GFo+nrAEKa+XDdYwvB+pu5mqR5oE7A6bQnwHDKaB7RvYIF2Fck8a7E1zLWtXT2RYbtFlVtfdU4u9VIPrKQmUpv+S9IbG/uPBwFV174WW+3rNtep7S9c2+fpIPTFfP2Vmclfl/NcKtGUsQzborKECIAAA", "data:image/webp;base64,UklGRlgBAABXRUJQVlA4IEwBAAAwCACdASoYADUAPu1krFCppSQiqBgNUTAdiWYAsR+0iZpJO3sfdlzklsgqleAqtt9T6xGyu9/YvOzJaW7wYGUKETS7sMNjlcSvAAD+9AmqKlGNQluogP59iZ3fNtBoAj0kDS4Kmm0H3bvKa2n497ZGWOC2JMM7m84nmKb7+PW6mIRpoMI3Hbtw77nRZv5axaM2XsETPAVCUjX7NDmW1JH+C9W1vUXZfDEsZH2iWx/XHZqg6pFMcN7q+RXvqmSqOVGf7EFglzERKYWXX1AbrBDUzLnxQCCOof/mGicIcYg03qz15squda/SlDdp/BH0pl6WhX4ajxzXsskEFqXjw1xOZLRbWYkASQSlB8Zjhf28EnUME5Q1splSp0g37T7iE6KuRJ7EPaPvWnONy+FXWh2ch8hwaTdY4dIuhyeHwomfh7uwnbWn7Fap4GUAAA=="],
+      "trees-34-low-2": ["data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAABQBQCdASogABIAPuVcpU2pJSOiMAwBIByJZgC06Yv+30E5ckISaTVGkLH2mSDg9GKmA8AA/ucSru1dMW9au9vwD9DdYNBQ5zqGTR5rjjhbpQ0gh+uOrZUzm5siP6CmVDoMs3Ap5kkczBfXWmYSL4fcvm2+Am+X7+8zDfjiKLyQEa9QM9g4/9neH/cDKSdVGrmfYElvqXG+zwHq/RtZe6XdHRjsLDAhdVYSflUoNbVtjkHoR34T0AAA", "data:image/webp;base64,UklGRlIBAABXRUJQVlA4IEYBAADwCACdASoYADUAPu1mrFAppSQiqBgNUTAdiWYAuzNZAqZ/xvLOKCquDTamrFFubax2wmCUsQNyIdYRQIJ7Edp2goqT45mO8R7FlYHztcJKgAD+9EerydkZMYXoe4RvjHcO3d6yt8GHlDiFqx5knBA7ZEz4vEaGgZBijtUxZwUZ65uRyYHrA761/pA+ljpXdKpuBkbx/BCKfsLbbriU9OiHBMIfMsozx/k/9dAer6RR51UqGJpKHv25rPR/Wu6b+e8OaHz/NnNHmuMKX8FHUcIZxDLKjklazu7fG6K7X2C346dpdOfx+CXtp3yg9W6EHiBxqX7w09dfxSEbDLNMtnMDndhbhnwl2ylqOy0O8ZxRtR32cX2rFbKUPvjNqYqyk2261kHCYDFAGC2ljR1QpQ1UZ1DTfj8ft/K1hPpLQHDJoid9V0AAAA=="],
+      "fire-realm": ["data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAABwBQCdASogABIAPuVgpk2pJaOiMAwBIByJbACdM0xDTqJJBK9z0cRPbrw4ATRmv/jzwu6mAP71dG6Kz+wHBw5qk2s7dUBmi35Vg7ApY2DiQAPhDmF6eJBkOtQzuos68x5xK8sQ2SOH7PoYJL+Yymj6JF7uUsPInF9J5zClBOW88HqInswsrTxbW+Fm/4KtRP82Ts7nIDYaaicSqug+tiqYht+IGg3e2xRfJPJ9oth4SJLiWkGk9WAA", "data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAACQBQCdASoYADUAPu1irlCppSQirBVbMTAdiWoAgaw8GqUFGFhl9oNCdiYcGv9bNCifAQCf8AD++dB4950WacPaalamVn2LoCFOYJnWsah/8UQpCqaLl+EK6SAmGN73023g/HawRgXBjEyHzCq3h+Ty6/MVN//UTbdMeaySTB9Fai81Tr+SQvM0Sr2/LOYYt6tplkfVrXNsOQwvMOkqtXcXkCj6F7U+MAC74MT6tey0esnJoX0Z3DWQbbXY18tP01LFwG5TmqvHiaAA"],
+    };
+    const ids = Object.keys(B), id = ids[(Math.random() * ids.length) | 0], tall = innerHeight > innerWidth, el = document.getElementById("backdrop");
+    // a saved world to come back to: its own picture (main.js grabThumb keeps it), and main.js skips the green
+    const q = location.search, ns = `craftax3d.${/[?&]new\b/.test(q) ? "new" : /[?&](god|ending)\b/.test(q) ? "god" : "local"}.`;
+    let shot = null;
+    try { if (!/[?&](new|server)\b/.test(q) && localStorage.getItem(ns + "game")) { el.dataset.saved = "1"; shot = localStorage.getItem(ns + "shot"); } } catch {}
+    if (shot) { el.dataset.resume = "1"; const hi = el.querySelector(".hi"); hi.style.backgroundImage = `url("${shot}")`; hi.classList.add("on"); return; }
+    const base = new URL("./", location.href).href;
+    el.querySelector(".lo").style.backgroundImage = `url("${B[id][tall ? 1 : 0]}")`;
+    const img = new Image();
+    img.onload = () => { const hi = el.querySelector(".hi"); hi.style.backgroundImage = `url("${img.src}")`; hi.classList.add("on"); };
+    img.src = `${base}backdrops/${id}-${tall ? "phone" : "desktop"}.webp`;
+  })();
+  </script><div class="menu">
+  <div id="start-status" class="loadbar" role="progressbar" aria-label="Loading"><i></i><canvas data-pixel-text="Loading" data-pixel-flat data-pixel-size="2" aria-hidden="true"></canvas></div>
+  <h1 style="margin:0"><canvas data-pixel-text="CRAFTAX 3D" aria-label="Craftax 3D" role="img"></canvas></h1>
+  <p style="margin:-8px 0 10px"><canvas data-pixel-text="Built for agents. Humans welcome." data-pixel-flat aria-label="Built for agents. Humans welcome." role="img"></canvas></p>
+  <button class="mc" id="btn-play" disabled>Play</button>
+  <script>
+  // Play or Continue from the first paint (Pete): a world in the save slot (local.js's store, the same ?new / ?god namespaces) means
+  // Continue; main.js settles it once the world is loaded (a dead or untouched one says Play)
+  (() => { const q = location.search, ns = /[?&]new\b/.test(q) ? "new" : /[?&](god|ending)\b/.test(q) ? "god" : "local";
+    try { if (localStorage.getItem(`craftax3d.${ns}.game`)) document.getElementById("btn-play").textContent = "Continue"; } catch {} })();
+  </script>
+  <div class="pair"><button class="mc" id="btn-load" title="Your worlds: each one is kept as you play, until it dies">My Worlds</button><button class="mc" id="btn-new">New World</button></div>
+  <button class="mc" id="btn-botworld" style="display:none">Start a bot world</button>   <!-- server worlds only (main.js shows them): hidden from the first paint, not after loading -->
+  <button class="mc" id="btn-watch" style="display:none">Watch a world…</button>
+  <div class="pair"><button class="mc" id="btn-help">Controls</button><button class="mc" id="btn-settings">Settings</button></div>
+  <div class="pair"><button class="mc" id="btn-research">Research</button><button class="mc" id="btn-replays" hidden title="Your recordings: watch, trim and save them">Replays</button></div>   <!-- Replays: once you've recorded something (main.js) -->
+  <!-- the credit (Pete): Shellcaster, quietly, under the menu: a pixel crystal ball and a line in the flat pixel font -->
+  <a id="credit" href="https://shellcaster.com" target="_blank" rel="noopener" aria-label="Made with Shellcaster"><svg viewBox="0 0 12 12" width="24" height="24" shape-rendering="crispEdges" aria-hidden="true"><path d="M4 1h4v1h1v1h1v5H9v1H8v1H4V9H3V8H2V3h1V2h1z" fill="#5a3aa8"/><path d="M5 2h3v1h1v4H8v1H6V7H5V6H4V3h1z" fill="#8a6ae0"/><path d="M4 3h2v2H4z" fill="#ece4ff"/><path d="M7 6h1v1H7z" fill="#c8b8ff"/><path d="M3 10h6v1H3z" fill="#c89a3a"/><path d="M2 11h8v1H2z" fill="#7a5a18"/></svg><canvas class="one" data-pixel-text="Made with Shellcaster" data-pixel-flat data-pixel-size="2" aria-hidden="true"></canvas><span class="two" aria-hidden="true"><canvas data-pixel-text="Made with" data-pixel-flat data-pixel-size="2"></canvas><canvas data-pixel-text="Shellcaster" data-pixel-flat data-pixel-size="2"></canvas></span></a>
+  <!-- on its side, the credit (fixed at the right) centred on the menu's buttons, Play/Continue to Research (Pete), from the loading
+       screen on: here, not in main.js, so it is placed before the game's modules load; measured as if the loading bar were already
+       gone, so it doesn't move when the bar goes and the buttons shift up -->
+  <script>
+  (() => {
+    const side = matchMedia("(max-height: 520px) and (orientation: landscape)"), c = document.getElementById("credit");   // (a short screen only, as menus.css: a tablet's menu has the room)
+    const place = () => {
+      const start = document.getElementById("start"), bar = document.getElementById("start-status");
+      if (!side.matches || !start.classList.contains("on")) { c.style.top = c.style.visibility = ""; return; }
+      // (the pixel lines not drawn yet, canvases at their 300 x 150 default: the menu and the badge are the wrong size; wait, hidden)
+      if (start.querySelector("canvas[data-pixel-text]:not([style])")) { c.style.visibility = "hidden"; return; }
+      const loading = !bar.classList.contains("done");
+      if (loading) bar.classList.add("done");                                // (put back before the browser paints)
+      let t = Infinity, b = -Infinity;
+      for (const e of start.querySelectorAll(".menu button.mc")) { const r = e.getBoundingClientRect(); if (r.height) { t = Math.min(t, r.top); b = Math.max(b, r.bottom); } }
+      if (loading) bar.classList.remove("done");
+      if (b > t) { c.style.top = `${Math.round((t + b) / 2)}px`; c.style.visibility = ""; }   // (the CSS's translateY(-50%) centres the badge on it)
+    };
+    place(); addEventListener("resize", place); side.addEventListener?.("change", place); setInterval(place, 250);
+  })();
+  </script>
+  <p id="srv-line" style="font-size:13px;display:none">Server: <span id="srv-name">…</span> <button class="mc small" id="btn-servers">Servers…</button></p>
+</div></div>
+
+<div id="servers" class="screen"><div class="menu">
+  <h1 style="font-size:30px">Servers</h1>
+  <div id="servers-list"></div>
+  <div><input id="server-url" placeholder="https://my-server.example.com or localhost:8790"> <button class="mc small" id="btn-server-add">Add</button></div>
+  <button class="mc" id="btn-servers-back">Back</button>
+</div></div>
+
+<div id="worlds" class="screen"><div class="menu">
+  <h1 style="font-size:30px">Worlds on this server</h1>
+  <div id="worlds-list"></div>
+  <button class="mc" id="btn-worlds-back">Back</button>
+</div></div>
+
+<div id="saves" class="screen"><div class="menu">
+  <h1 style="font-size:30px">My Worlds</h1>
+  <p style="font-size:13px">Worlds save as you play. A death ends one for good.</p>
+  <div id="saves-list"></div>
+  <div class="newrow seedrow"><input id="seed-in" inputmode="numeric" placeholder="random seed" title="Leave empty for a random world, or type a seed: the same seed always makes the same world" aria-label="Seed"><button class="mc" id="btn-saves-new">New World</button></div>
+  <button class="mc" id="btn-saves-back">Back</button>
+</div></div>
+
+<div id="dead" class="screen"><div class="menu">
+  <h1 style="margin:0 0 6px"><canvas id="dead-title" data-pixel-text="You died!" data-pixel-color="red" data-pixel-size="7" data-pixel-max="640" aria-label="You died!" role="img"></canvas></h1>
+  <div class="tomb" id="tomb"><div class="stone"><canvas class="rip" data-pixel-text="R.I.P." data-pixel-engraved data-pixel-size="7" aria-label="R.I.P." role="img"></canvas><div id="dead-cause"></div><div id="dead-sub"></div></div><div class="mound"></div></div>
+  <script>{ /* the gravestone's light, one value per 4 px stone pixel: lit low and left of center, behind the small text (Pete), shadowed toward the top right and the corners, in seven bands with a Bayer dither where two meet (pixels, not smooth arcs; Pete) */
+    const N = 80, cv = document.createElement("canvas"); cv.width = cv.height = N; const g = cv.getContext("2d"), img = g.createImageData(N, N);
+    const lv = [.34, .2, .09, 0, -.13, -.26, -.4], bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const d = Math.hypot((x - 28.5) / 62, (y - 46.5) / 52) * 5.2, k = Math.min(6, Math.floor(d + (bayer[(y & 3) * 4 + (x & 3)] + .5) / 16 - .5)), a = lv[Math.max(0, k)], i = (y * N + x) * 4;
+      if (a > 0) img.data.set([255, 244, 222, a * 255], i); else img.data.set([10, 8, 14, -a * 255], i);
+    }
+    g.putImageData(img, 0, 0); document.querySelector("#tomb .stone").style.setProperty("--tomb-light", `url(${cv.toDataURL()})`);
+    /* the dirt heap in front of it, 90 x 7 pixels: a stepped heap (full height under the stone, sloping off at the ends), clods in five browns from a fixed hash (the same every death),
+       its top row lit and its lowest rows in shade (Pete: a fresh grave, not grass) */
+    const W = 90, H = 7, dv = document.createElement("canvas"); dv.width = W; dv.height = H; const dg = dv.getContext("2d"), di = dg.createImageData(W, H);
+    const browns = [[89, 61, 41], [107, 74, 50], [121, 85, 58], [139, 97, 66], [150, 112, 79]];
+    for (let x = 0; x < W; x++) { const e = Math.min(x, W - 1 - x), top = H - Math.min(H, 2 + (e >> 1) + (e % 5 === 2 && e > 3 && x < W / 2 ? 1 : 0));
+      for (let y = Math.max(0, top); y < H; y++) { const hsh = ((x * 73856093) ^ (y * 19349663)) >>> 0, r = (hsh % 1000) / 1000;
+        let k = r < .18 ? 0 : r < .5 ? 1 : r < .8 ? 2 : r < .94 ? 3 : 4; if (y === top) k = Math.min(4, k + 2); else if (y >= H - 2) k = Math.max(0, k - 1);
+        di.data.set([...browns[k], 255], (y * W + x) * 4); } }
+    dg.putImageData(di, 0, 0); document.querySelector("#tomb .mound").style.setProperty("--tomb-dirt", `url(${dv.toDataURL()})`);
+  }</script>
+  <p id="dead-seed" class="deadseed">Seed</p>
+  <div class="pair"><button class="mc" id="btn-retry" title="The same world again, from the start">Try Again</button><button class="mc" id="btn-dead-seed" title="Copy this world's seed: the same seed always makes the same world">Copy Seed</button></div>
+  <div class="pair worlds"><button class="mc" id="btn-dead-worlds" title="Your other worlds">My Worlds</button><button class="mc" id="btn-respawn">New World</button></div>
+  <button class="mc" id="btn-dead-menu" title="The main menu: Research, Replays, Settings…">Main Menu</button>   <!-- (Pete: the rows as the main menu's, and a way back to it) -->
+</div></div>
+
+<div id="victory"><canvas id="victory-sparks"></canvas><div class="vbox">
+  <div id="victory-score"></div>
+  <canvas id="victory-title" data-pixel-text="VICTORY!" data-pixel-size="7" data-pixel-max="420" aria-label="Victory!" role="img"></canvas>
+  <div id="victory-sub"></div>
+</div><div class="vflash"></div></div>
+<div id="panel" class="screen"><div class="win" id="panel-win"></div></div>
+<div id="settings" class="screen"><div class="win">
+  <button class="x" id="btn-settings-x" aria-label="Close" data-tip="Close (Esc)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 3h3v2h2v2h4V5h2V3h3v3h-2v2h-2v4h2v2h2v3h-3v-2h-2v-2H8v2H6v2H3v-3h2v-2h2V8H5V6H3z" fill="#fff"/></svg></button>
+  <div class="tabs" id="settings-tabs" role="tablist"><button class="tab on" data-tab="speed" role="tab">World</button><button class="tab" data-tab="play" role="tab" aria-label="Gameplay"><span class="wide">Gameplay</span><span class="narrow">Play</span></button><button class="tab" data-tab="agent" role="tab">Agent</button><button class="tab" data-tab="sound" role="tab">Sound</button></div>
+  <div class="settings spage" data-page="speed">
+    <label class="shadow slide"><span>World moves at</span> <input type="range" id="opt-tick" min="1" max="10" step="0.5" value="3"> <span class="v"><span id="tick-ms">3</span> <span id="tick-u">steps / second</span></span></label>
+    <ul class="snote"><li><span class="ico sun"></span>A Craftax day is 300 steps.</li><li><img class="ico" id="ico-drop" alt="">Hunger and thirst count steps, not seconds.</li></ul>
+    <hr class="srule">
+    <label class="shadow">When you stand still, the world
+      <select id="opt-idle" autocomplete="off"><option value="go">keeps going</option><option value="slow" selected>slows down</option><option value="pause">pauses (turn-based, like Craftax)</option></select></label>
+    <label class="shadow slide" id="row-idlerate"><span>Speed when still</span> <input type="range" id="opt-idlerate" min="0.5" max="3" step="0.5" value="1"> <span class="v"><span id="idle-v">1</span> <span id="idle-u">step / second</span></span></label>   <!-- up to the move speed; projectiles in flight always go at the move speed (main.js) -->
+    <hr class="srule">
+    <label class="shadow"><input type="checkbox" id="opt-shaders" checked> <span>Ray tracing<small class="optnote">Ray-traced shadows, sky light and reflections. <br>Off: faster on a slow machine. G switches it too.</small></span></label>
+    <label class="shadow"><input type="checkbox" id="opt-particles" checked> <span>Particle effects<small class="optnote">A felled tree, a broken block and a fallen creature crumble into dust. <br>Off: they just vanish, faster on a slow machine.</small></span></label>   <!-- Pete -->
+    <label class="shadow"><input type="checkbox" id="opt-grass3d"> <span>3D grass<small class="optnote">Blades of grass that sway, bend underfoot and can be cut. <br>Off: faster on a slow machine.</small></span></label>   <!-- main.js grass3d -->
+    <label class="shadow" style="display: none"><input type="checkbox" id="opt-stats" checked> <span>Send anonymous play statistics<small class="optnote">Scores, achievements and which bots play, to improve the game. <br>No account and no cookies.</small></span></label>   <!-- js/telemetry.js -->
+  </div>
+  <div class="settings spage" data-page="play" hidden>
+    <!-- on a desktop, four tabs of their own (Pete 6d69); on a touch screen all of it in one list, as before -->
+    <div class="tabs subtabs" id="play-tabs" role="tablist"><button class="tab on" data-sub="bump" role="tab"><svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M8 0h4v1h-4zM8 1h4v1h-4zM3 2h1v1h-1zM8 2h4v1h-4zM3 3h2v1h-2zM8 3h4v1h-4zM0 4h6v1h-6zM8 4h4v1h-4zM0 5h7v1h-7zM8 5h4v1h-4zM0 6h6v1h-6zM8 6h4v1h-4zM3 7h2v1h-2zM8 7h4v1h-4zM3 8h1v1h-1zM8 8h4v1h-4zM8 9h4v1h-4zM8 10h4v1h-4zM8 11h4v1h-4z" fill="currentColor"/></svg>Move</button><button class="tab" data-sub="fp" role="tab"><svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 2h6v1h-6zM1 3h3v1h-3zM8 3h3v1h-3zM0 4h2v1h-2zM5 4h2v1h-2zM10 4h2v1h-2zM0 5h1v1h-1zM4 5h4v1h-4zM11 5h1v1h-1zM0 6h1v1h-1zM4 6h4v1h-4zM11 6h1v1h-1zM0 7h2v1h-2zM5 7h2v1h-2zM10 7h2v1h-2zM1 8h3v1h-3zM8 8h3v1h-3zM3 9h6v1h-6z" fill="currentColor"/></svg>1st person</button><button class="tab" data-sub="bird" role="tab"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 18 6.5 10 11 2 6.5Z" fill="currentColor" opacity=".35"/><path d="M2 6.5V14L10 18.5V11ZM18 6.5V14L10 18.5V11Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path class="hi-edge" d="M10 2 18 6.5 10 11 2 6.5Z" fill="none" stroke="#ffff80" stroke-width="1.6" stroke-linejoin="round"/></svg>Bird's-eye</button><button class="tab" data-sub="notify" role="tab"><svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 1h12v1h-12zM0 2h1v6h-1zM11 2h1v6h-1zM0 8h12v1h-12zM5 9h2v1h-2zM3 10h6v1h-6z" fill="currentColor"/></svg>Show</button></div>
+    <div class="sub" data-sub="bump">
+    <label class="shadow no-touch"><input type="checkbox" id="opt-bump" checked> <span>Attack on bump<small class="optnote">With a tool in hand, walking into a tree, rock or creature hits it. <br>Off: walking into it just turns you.</small></span></label>
+    <label class="shadow no-touch"><input type="checkbox" id="opt-preview" checked> <span>Preview the bump's tool<small class="optnote">Picks the right tool before you bump. <br>Sword for creatures, pickaxe for stone.</small></span></label>
+    <label class="shadow"><input type="checkbox" id="opt-knockback"> <span>Knockback<small class="optnote">One hit will make you stagger, a second will knock you back. <br>Knockback is a mod for players only.</small></span></label>   <!-- main.js hitReel, local.js /api/shove -->
+    <label class="shadow touch-only"><input type="checkbox" id="opt-autodig" checked> <span>Arrows act ahead<small class="optnote">With a tool in hand, walking into a tree, rock or creature hits it. <br>Off: one-handed mode adds outer keys for that.</small></span></label>
+    <label class="shadow touch-only"><input type="checkbox" id="opt-pads" checked> Show touch controls</label>
+    <label class="shadow no-touch">Turn without moving <select id="opt-turn" autocomplete="off"><option value="shift">Shift + Arrow keys</option><option value="arrows">Arrow keys</option></select></label>   <!-- 2D and 3/4: Arrows = the arrow keys only turn you to face that way (Shift + Arrows as well); Shift + Arrows = the arrows walk, Shift turns (Pete) -->
+    <label class="shadow touch-only">Touch controls <select id="opt-hands" autocomplete="off"><option value="auto">Auto</option><option value="1">One-handed</option><option value="2">Two-handed</option></select></label>   <!-- upright phone: Auto = the split pad in first person, one-handed in 3/4 and classic (Pete) -->
+    <label class="shadow slide touch-only"><span>Controls height</span> <input type="range" id="opt-padlift" min="-120" max="160" step="4" value="0"> <span class="v" id="padlift-v">usual</span></label>   <!-- the touch controls up or down from their usual place, on any screen (Pete), remembered -->
+    </div>
+    <!-- first person only (Pete: grouped in their own tab) -->
+    <div class="sub" data-sub="fp" hidden>
+    <label class="shadow" style="display: none"><input type="checkbox" id="opt-orient" checked> <span>Orient on click<small class="optnote">Turns you to face what you click. <br>Handy for aiming arrows and spells.</small></span></label>
+    <label class="shadow"><input type="checkbox" id="opt-cross" checked> Show the crosshair</label>
+    <label class="shadow no-touch" style="display: none"><input type="checkbox" id="opt-crossclick" disabled> <span>Click at the crosshair<small class="optnote">In 1st person, a click acts on what the crosshair is on, <br>wherever the mouse is, captured or not.</small></span></label>
+    <div class="shadow no-touch caprow"><div class="rowhead"><label><input type="checkbox" id="opt-cap0"> Capture the mouse</label><label><input type="checkbox" id="opt-mouseinvert"> Invert</label></div><small class="optnote">Press U to unlock it, or hold Alt to free it temporarily.</small></div>   <!-- per view (main.js cap); Invert mouse beside it (Pete) -->
+    <div class="shadow targetrow"><label>Move to target <select id="opt-target0" autocomplete="off"><option value="click">on click</option><option value="hold">on hold</option><option value="never">never</option></select></label><label>Spam target <select id="opt-spam0" autocomplete="off"><option value="on">until destroyed</option><option value="off">never</option></select></label></div>   <!-- click: a click walks you to what it's on (up to 1st person reach) and acts; hold: only a held click does (a quick one just swings); never: only what's beside you. Spam: keep hitting it till it breaks or dies (water: drink till full) -->
+    <label class="shadow">If target moves <select id="opt-chase0" autocomplete="off"><option value="chase">chase it</option><option value="near">follow it nearby</option><option value="stop">let it go</option></select></label>   <!-- a creature you were hitting steps away (main.js reach) -->
+    <label class="shadow">Target highlight <select id="opt-targetbox0" autocomplete="off"><option value="off">Spotlight</option><option value="box">Box</option><option value="boxfill">White box, filled</option><option value="gboxfill">Green box, filled</option><option value="rboxfill">Red box, filled</option></select></label>   <!-- 1st person and bird's-eye: what you'd hit within 1st person reach (main.js targetBox) -->
+    <label class="shadow slide"><span>Target reach</span> <input type="range" id="opt-reach" min="1" max="11" step="1" value="2"> <span class="v"><span id="reach-v">2 blocks</span></span></label>   <!-- first person: how far a click (or Space at the crosshair) walks to a target; 11 = any distance (main.js beyondReach) -->
+    <label class="shadow slide"><span>Field of view</span> <input type="range" id="opt-fov" min="60" max="110" step="1" value="80"> <span class="v"><span id="fov-v">80</span>°</span></label>   <!-- wider also sets the eye back in its tile (main.js eyeBack), remembered -->
+    <label class="shadow slide"><span>Crosshair size</span> <input type="range" id="opt-crosssize" min="8" max="48" step="2" value="18"> <span class="v"><span id="crosssize-v">18</span> px</span></label>   <!-- remembered (main.js) -->
+    <label class="shadow slide no-touch"><span>Mouse speed</span> <input type="range" id="opt-mousespeed" min="25" max="300" step="5" value="100"> <span class="v"><span id="mousespeed-v">100</span>%</span></label>   <!-- a captured mouse's look speed (main.js), remembered -->
+    </div>
+    <!-- bird's-eye only (Pete: its own tab): the 3/4 camera that orbits you (main.js), remembered -->
+    <div class="sub" data-sub="bird" hidden>
+    <div class="shadow duorow"><div class="rowhead"><label class="no-touch"><input type="checkbox" id="opt-cap2"> Capture the mouse</label><label><input type="checkbox" id="opt-orbitinvert"> Invert</label></div><small class="optnote no-touch">Press U to unlock it, or hold Alt to free it temporarily.</small></div>   <!-- per view (main.js cap) -->   <!-- Invert tilt beside it (Pete): it also flips a touch drag, so on a touch screen it stays, alone -->
+    <label class="shadow"><input type="checkbox" id="opt-birdswing" checked> <span>Swing round trees<small class="optnote">When a tree hides you, the camera moves to see you.</small></span></label>
+    <div class="shadow targetrow"><label>Move to target <select id="opt-target2" autocomplete="off"><option value="click">on click</option><option value="hold">on hold</option><option value="never">never</option></select></label><label>Spam target <select id="opt-spam2" autocomplete="off"><option value="on">until destroyed</option><option value="off">never</option></select></label></div>   <!-- click: a click walks you to what it's on and acts; hold: only a held click does (a quick one just swings); never: only what's beside you. Spam: keep hitting it till it breaks or dies (water: drink till full) -->
+    <label class="shadow">If target moves <select id="opt-chase2" autocomplete="off"><option value="chase">chase it</option><option value="near">follow it nearby</option><option value="stop">let it go</option></select></label>   <!-- a creature you were hitting steps away (main.js reach) -->
+    <label class="shadow">Target highlight <select id="opt-targetbox2" autocomplete="off"><option value="off">Spotlight</option><option value="box">Box</option><option value="boxfill">White box, filled</option><option value="gboxfill">Green box, filled</option><option value="rboxfill">Red box, filled</option></select></label>   <!-- 1st person and bird's-eye: what you'd hit within 1st person reach (main.js targetBox) -->
+    <label class="shadow slide"><span>Orbit speed</span> <input type="range" id="opt-orbitspeed" min="25" max="300" step="5" value="100"> <span class="v"><span id="orbitspeed-v">100</span>%</span></label>
+    <label class="shadow slide"><span>Camera distance</span> <input type="range" id="opt-birddist" min="60" max="160" step="5" value="100"> <span class="v"><span id="birddist-v">100</span>%</span></label>
+    </div>
+    <!-- Show (was Notify, Pete): notices that pop up in play (all on for a new player), and creatures' hearts; remembered -->
+    <div class="sub" data-sub="notify" hidden>
+    <div class="shadow duorow"><div class="rowhead"><label><input type="checkbox" id="opt-needwarn" checked> Warnings when running low</label><label><input type="checkbox" id="opt-needonce" checked> Once per game</label></div><small class="optnote">A sign when water, food or energy runs low.</small></div>   <!-- off: every time one drops that low (Pete) -->
+    <label class="shadow"><input type="checkbox" id="opt-achtoast" checked> <span>Achievements<small class="optnote">"Achievement get!" at the right as you earn each one. <br>Off: the bell still rings.</small></span></label>
+    <label class="shadow"><input type="checkbox" id="opt-mobhp"> <span>Creature health<small class="optnote">Hearts over a creature once you've hurt it, <br>until it dies.</small></span></label>
+    </div>
+  </div>
+  <!-- sound: the volume, today's level in the middle, up to twice it (Pete), remembered -->
+  <div class="settings spage" data-page="sound" hidden>
+    <label class="shadow slide"><span>Volume</span> <input type="range" id="opt-volume" min="0" max="200" step="5" value="100"> <span class="v"><span id="volume-v">100</span>%</span></label>
+    <ul class="snote"><li>K turns the sound off and on.</li></ul>
+  </div>
+  <!-- the agent: which one plays when you let it (nothing downloads or runs until it does), how fast, how adventurous, your own -->
+  <div class="settings spage" data-page="agent" hidden>
+    <label class="shadow slide"><span>Bot speed</span> <input type="range" id="opt-botspeed" min="0" max="8" step="1" value="4"> <span class="v"><span id="botspeed-v">15</span> moves / sec</span></label>
+    <label class="shadow slide"><span>Temperature</span> <input type="range" id="opt-temp" min="0" max="2" step="0.1" value="0.2"> <span class="v"><span id="temp-v">0.2</span></span></label>
+    <p style="font-size:12px;color:#aaa;margin:-6px 0 0">Affects model creativity.</p>
+    <label class="shadow"><input type="checkbox" id="opt-useful"> Sample only possible actions</label>
+    <label class="shadow"><input type="checkbox" id="opt-watch"> Bot watches you play</label>
+    <label class="shadow"><input type="checkbox" id="opt-brainrec"> Record brain activity</label>
+    <div id="set-agents" class="agents"></div>
+    <label class="shadow" id="gpu-row" hidden><input type="checkbox" id="opt-gpu"> <span>Run on the GPU<small class="optnote" id="gpu-note"></small></span></label>   <!-- Pete: js/agent.ts agentGpu; shown for a player that can run on either -->
+  </div>
+  <div class="setbtns"><button class="mc" id="btn-settings-close">Back</button><button class="mc" id="set-agent-open" hidden>+ Add <span class="wide-only">your </span>agent</button></div>
+</div></div>
+<div id="help" class="screen"><div class="win">
+  <button class="x" id="btn-help-x" aria-label="Close" data-tip="Close (Esc)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 3h3v2h2v2h4V5h2V3h3v3h-2v2h-2v4h2v2h2v3h-3v-2h-2v-2H8v2H6v2H3v-3h2v-2h2V8H5V6H3z" fill="#fff"/></svg></button>
+  <div class="tabs" id="help-tabs" role="tablist"><button class="tab on" data-tab="keys" role="tab">Keyboard</button><button class="tab" data-tab="mouse" role="tab">Mouse</button><button class="tab" data-tab="touch" role="tab">Touch</button></div>
+  <div class="hpage" data-page="keys"><table>
+    <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>walk</td></tr>
+    <tr><td><kbd>Shift</kbd> + <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>turn without stepping</td></tr>
+    <tr><td><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></td><td id="help-arrows">look around</td></tr>   <!-- (both rows: as the view you're in has them, main.js helpRows) -->
+    <tr><td><kbd>Space</kbd></td><td>act on the tile ahead</td></tr>
+    <tr><td><kbd>1</kbd>–<kbd>0</kbd>, <kbd>−</kbd></td><td>pick a hotbar slot</td></tr>
+    <tr><td><kbd>E</kbd></td><td>inventory and crafting</td></tr>
+    <tr><td><kbd>Space</kbd> or <kbd>Q</kbd></td><td>climb a ladder</td></tr>
+    <tr><td><kbd>Z</kbd></td><td>sleep (energy not full)</td></tr>
+    <tr><td><kbd>R</kbd></td><td>rest (health not full)</td></tr>
+    <tr><td><kbd>X</kbd></td><td>place block ahead</td></tr>
+    <tr><td><kbd>C</kbd> <kbd>V</kbd> <kbd>B</kbd></td><td>2D, 1P/3P, bird's-eye</td></tr>
+    <tr><td><kbd>M</kbd></td><td>color, phosphor, laser</td></tr>
+    <tr><td><kbd>Shift</kbd> + <kbd>M</kbd></td><td>the same, backward</td></tr>
+    <tr><td><kbd>F5</kbd></td><td>First or third person</td></tr>
+    <tr class="if-themes"><td><kbd>T</kbd></td><td>the next theme</td></tr>
+    <tr class="if-themes"><td><kbd>Shift</kbd> + <kbd>T</kbd></td><td>the same, backward</td></tr>
+    <tr><td><kbd>P</kbd></td><td>agent plays / take over</td></tr>
+    <tr><td><kbd>K</kbd></td><td>sound on or off</td></tr>
+    <tr><td><kbd>G</kbd></td><td>graphics quality</td></tr>
+    <tr><td><kbd>H</kbd></td><td>these controls</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>pause</td></tr>
+  </table>
+  </div>
+  <div class="hpage" data-page="mouse" hidden><table>
+    <tr><td>move</td><td>look (mouse captured)</td></tr>
+    <tr><td>drag</td><td>look (mouse free)</td></tr>
+    <tr><td>click</td><td>hit, mine, drink, open</td></tr>
+    <tr><td><kbd>Shift</kbd> + click</td><td>break a table or furnace</td></tr>
+    <tr><td>click, item held</td><td>place, shoot or cast</td></tr>
+    <tr><td>wheel</td><td>pick a hotbar slot</td></tr>
+    <tr><td><kbd>U</kbd></td><td>capture or free mouse</td></tr>
+    <tr><td><kbd>Alt</kbd></td><td>hold: free the mouse</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>pause, free the mouse</td></tr>
+  </table>
+  </div>
+  <div class="hpage" data-page="touch" hidden><table>
+    <tr><td>the arrow pad</td><td>walk (slide across)</td></tr>
+    <tr><td>Use</td><td>act ahead; hold: repeat</td></tr>
+    <tr><td>the pad's middle</td><td>Use (phone on its side)</td></tr>
+    <tr><td>Sleep / Zzz</td><td>sleep (hold or tap)</td></tr>
+    <tr><td>tap the view</td><td>act on what you tap</td></tr>
+    <tr><td>drag the view</td><td>look (3/4: swing view)</td></tr>
+    <tr><td>hold on water</td><td>keep drinking</td></tr>
+    <tr><td>Full screen</td><td>hide the browser bars</td></tr>
+  </table>
+  </div>
+  <div class="hbtns"><button class="mc" id="btn-help-settings">Settings</button><button class="mc" id="btn-help-close" hidden>Back</button></div>   <!-- (Back hidden, Pete: the ✕ closes it; its handler stays for the ✕ and Esc) -->   <!-- (Pete: the switches live in Settings only; they differ by view) -->
+</div></div>
+<div id="research" class="screen"><div class="win">
+  <button class="x" id="btn-research-x" aria-label="Close" data-tip="Close (Esc)"><svg viewBox="0 0 20 20" width="20" height="20" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 3h3v2h2v2h4V5h2V3h3v3h-2v2h-2v4h2v2h2v3h-3v-2h-2v-2H8v2H6v2H3v-3h2v-2h2V8H5V6H3z" fill="#fff"/></svg></button>
+  <div class="tabs" id="research-tabs" role="tablist"><button class="tab" data-tab="papers" role="tab">Papers</button><button class="tab" data-tab="agents" role="tab">Agents</button><button class="tab" data-tab="repos" role="tab">Repos</button></div>
+  <div id="research-body"></div>
+  <div class="research-btns"><button class="mc" id="btn-test-agent">Test My Agent</button></div>   <!-- the Agents tab only; the X closes (Pete) -->
+</div></div>
+<div id="loading">Loading…</div>
+<script type="module" src="./js/pixeltitle.ts"></script>
+<script type="module" src="./js/main.ts"></script>
+</body>
+</html>
