@@ -137,7 +137,31 @@ function slider(name: string, tip: string, min: number, max: number, step: numbe
   el.innerHTML = `<span>${name}</span><input type="range" min="${min}" max="${max}" step="${step}"><b></b>`;
   const input = el.querySelector("input")!, out = el.querySelector("b")!;
   input.oninput = () => { out.textContent = show(+input.value); send(+input.value); };
-  return { el, set(v: number) { if (document.activeElement !== input) { input.value = String(v); out.textContent = show(v); } } };
+  // held: a finger or the mouse on it, and a moment after (a phone gives a range input no focus while a finger drags it, so the
+  // next state, many a second with a fast bot, put it back under the finger: Pete)
+  let held = false, until = 0, finger: number | null = null;
+  input.addEventListener("pointerdown", () => { held = true; });
+  // a finger: a tap jumps to where it lands and a drag anywhere along it follows (Pete: a phone's range input only moves by its
+  // knob, so a tap on the track did nothing). The knob is 16 px across (game.css), its middle reaches 8 px from either end
+  const at = (x: number) => {
+    const r = input.getBoundingClientRect(), lo = +input.min, hi = +input.max, st = +input.step || 1;
+    const t = Math.max(0, Math.min(1, (x - r.left - 8) / Math.max(1, r.width - 16)));
+    const v = String(Math.min(hi, lo + Math.round((t * (hi - lo)) / st) * st));
+    if (input.value !== v) { input.value = v; input.oninput!(new Event("input")); }
+  };
+  input.style.touchAction = "none";
+  input.addEventListener("pointerdown", (e) => { if (e.pointerType !== "touch") return; e.preventDefault(); finger = e.pointerId; try { input.setPointerCapture(e.pointerId); } catch {} at(e.clientX); });
+  addEventListener("pointermove", (e: PointerEvent) => { if (e.pointerId === finger) at(e.clientX); });   // (on the page: the finger may slide off it)
+  const off = () => { finger = null; if (held) { held = false; until = performance.now() + 500; } };
+  addEventListener("pointerup", off); addEventListener("pointercancel", off);
+  return { el, set(v: number) { if (!held && performance.now() > until && document.activeElement !== input) { input.value = String(v); out.textContent = show(v); } } };
+}
+// a panel button acts as it's pressed, not on the click after (Pete: with a fast bot the page is busy, and a click, down and up on
+// the same button, often never came; a press outside the expanded brain always worked). Enter or Space still click it
+function press(b: HTMLElement | null, fn: () => void) {
+  if (!b) return;
+  b.onpointerdown = (e) => { if (e.button) return; e.stopPropagation(); e.preventDefault(); (e.currentTarget as HTMLElement).blur(); fn(); };
+  b.onclick = (e) => { e.stopPropagation(); if (e.detail === 0) fn(); };   // (detail 0: from the keyboard; a pointer's click was its press)
 }
 let speedList = [1, 2, 4, 8, 15, 30, 60, 120, 240];
 const speed = slider("speed", "moves a second", 0, speedList.length - 1, 1, (i) => speedList[i] + "/s", (i) => panelHooks.pace({ speed: speedList[i] }));
@@ -166,7 +190,7 @@ function grow(on: boolean) {
 }
 // the camera beside the expand arrows: a PNG of the brain's canvas alone (no name, sliders or buttons), at its full drawn size
 // a plugin's bot with a brain view of its own (src/core/plugins.ts, "brainView": a crystal's picture, say) shows it instead of the
-// neuron brain, on unless its "Show …" box is unticked: a box in the expanded panel, shown only while such a bot plays
+// neuron brain, always (Pete)
 const ownView = (w: WorldInfo) => [...listed("brainView")].reverse().find((v) => v.accepts(w as unknown as Record<string, unknown>)) || null;
 let view: typeof brain | BrainView = brain;
 function brainShot() {
@@ -189,12 +213,25 @@ function fold(on: boolean, quiet?: boolean) {
   if (b && b.dataset.on !== String(down)) { b.dataset.on = String(down); b.innerHTML = down ? ICON.unfold : ICON.fold; b.dataset.tip = down ? "Show" : mini ? "Collapse" : "Hide"; b.setAttribute("aria-label", b.dataset.tip); }
   if (!quiet) store.set("botFolded", on ? "1" : "0");
 }
-// the fold arrow: on a phone's mini brain, collapse to the name (and back); anywhere else, fold and open the panel as before
+// the fold arrow: on a phone's mini brain, collapse to the name (and back); the expanded brain, hidden at once, to the name alone on
+// a phone too (Pete); anywhere else, fold and open the panel as before
 function foldBtn() {
   const el = $("botpanel");
+  if (el.classList.contains("big") && PHONE.matches) { el.classList.add("tiny"); store.set("botTiny", "1"); fold(true); return; }
   if (el.classList.contains("folded") && PHONE.matches) { const t = !el.classList.contains("tiny"); el.classList.toggle("tiny", t); store.set("botTiny", t ? "1" : "0"); fold(true, true); }
   else fold(!el.classList.contains("folded"));
 }
+// a tap or click off the expanded brain shrinks it back to the small panel, as its shrink button does (Pete), and does nothing
+// else: not a walk or a swing in the world under it. Not from Settings or a screen opened over it (its gear, say)
+addEventListener("pointerdown", (e) => {
+  const el = $("botpanel"), t = e.target as Element;
+  if (!el.classList.contains("big") || el.style.display === "none" || t.closest?.("#botpanel, #settings, .screen.on")) return;
+  e.stopPropagation(); e.preventDefault();
+  const eat = (ev: Event) => { ev.stopPropagation(); ev.preventDefault(); };
+  for (const k of ["mousedown", "mouseup", "click"]) addEventListener(k, eat, { capture: true, once: true });
+  setTimeout(() => { for (const k of ["mousedown", "mouseup", "click"]) removeEventListener(k, eat, { capture: true }); }, 600);
+  grow(false); if (last) renderBot(...last);
+}, { capture: true });
 // the name, short on a phone (Pete): "Agent 194" from the model's score out of 226, "Agent X" when it has none
 const agentName = (score: string | undefined) => "Agent " + ((String(score || "").match(/^([\d.]+)\s*\/\s*226/) || [, "X"])[1]);
 const PHONE = phoneMedia("(max-width: 720px), (max-height: 520px)");   // index.html's phone layout
@@ -232,20 +269,20 @@ export function renderBot(s: GameState | null, speeds: number[]) {
     const os = el.querySelector(".opt-slot"); if (os) { if (view !== brain && (view as BrainView).opt) os.replaceWith((view as BrainView).opt!); else os.parentElement!.remove(); }
     const ss = el.querySelector(".speed-slot"); if (ss) ss.replaceWith(speed.el);
     const ts = el.querySelector(".temp-slot"); if (ts) ts.replaceWith(temp.el);
-    const p = el.querySelector<HTMLElement>("button[data-pause]"); if (p) p.onclick = () => panelHooks.pace({ paused: !cur!.paused });
-    const sg = el.querySelector<HTMLElement>("button[data-single]"); if (sg) sg.onclick = () => panelHooks.pace({ single: true });
-    const c = el.querySelector<HTMLElement>("button[data-ctl]"); if (c) c.onclick = (e) => { (e.currentTarget as HTMLElement).blur(); panelHooks.toggle(); };
-    const h = el.querySelector<HTMLElement>("button[data-home]"); if (h) h.onclick = () => panelHooks.home();
+    press(el.querySelector("button[data-pause]"), () => panelHooks.pace({ paused: !cur!.paused }));
+    press(el.querySelector("button[data-single]"), () => panelHooks.pace({ single: true }));
+    press(el.querySelector("button[data-ctl]"), () => panelHooks.toggle());
+    press(el.querySelector("button[data-home]"), () => panelHooks.home());
     // (a phone: the name row only collapses the mini brain to the name and brings it back, like the arrow; the big brain is the
     // expand button's alone, Pete. A tap on the mini brain itself does nothing)
     view.el.onclick = null;
     el.querySelector<HTMLElement>(".head")!.onclick = () => (PHONE.matches && el.classList.contains("folded") ? foldBtn() : fold(!el.classList.contains("folded")));
-    el.querySelector<HTMLElement>("button.grow")!.onclick = (e) => { e.stopPropagation(); grow(!el.classList.contains("big")); };
-    el.querySelector<HTMLElement>("button.fold")!.onclick = (e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); foldBtn(); };
-    el.querySelector<HTMLElement>("button.shot")!.onclick = (e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); brainShot(); };
-    const mc = el.querySelector<HTMLElement>("button.mcfg"); if (mc) mc.onclick = (e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); panelHooks.agentSettings(); };   // the mini brain's own gear (Pete)
-    const cfg = el.querySelector<HTMLElement>("button.cfg"); if (cfg) cfg.onclick = (e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); panelHooks.agentSettings(); };
-    const pk = el.querySelector<HTMLElement>("button[data-pick]"); if (pk) pk.onclick = (e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).blur(); panelHooks.agentSettings(); };   // the big panel's "Change agent", beside Take over (Pete)
+    press(el.querySelector("button.grow"), () => { grow(!el.classList.contains("big")); if (last) renderBot(...last); });
+    press(el.querySelector("button.fold"), () => { foldBtn(); if (last) renderBot(...last); });
+    press(el.querySelector("button.shot"), () => brainShot());
+    press(el.querySelector("button.mcfg"), () => panelHooks.agentSettings());   // the mini brain's own gear (Pete)
+    press(el.querySelector("button.cfg"), () => panelHooks.agentSettings());
+    press(el.querySelector("button[data-pick]"), () => panelHooks.agentSettings());   // the big panel's "Change agent", beside Take over (Pete)
   }
   // (small on a phone: the game's own mini brain, folded, on the right with the health readouts beside it on the left: Pete)
   if (sizeForced) { el.classList.remove("tiny"); el.classList.toggle("big", sizeForced === "big"); el.classList.toggle("folded", sizeForced === "small" && PHONE.matches); }
@@ -264,7 +301,7 @@ export function renderBot(s: GameState | null, speeds: number[]) {
   view.clear = PHONE.matches && el.classList.contains("folded");   // the mini brain: no black behind it, the game shows through (Pete)
   if (bot && r.action && (!el.classList.contains("folded") || (PHONE.matches && !el.classList.contains("tiny")))) { view.body(s); view.update(r as NonNullable<WorldInfo["bot_reply"]>); }
   if (bot && w.you) {
-    speedList = speeds; speed.el.querySelector("input")!.max = String(speeds.length - 1);
+    speedList = speeds; const si = speed.el.querySelector("input")!, mx = String(speeds.length - 1); if (si.max !== mx) si.max = mx;   // (only when it changes: not under a finger every move)
     const i = speeds.indexOf(w.speed);
     speed.set(i < 0 ? speeds.findIndex((v) => v >= w.speed) : i);
     if (w.temp != null) temp.set(w.temp);

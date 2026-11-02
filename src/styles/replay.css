@@ -164,6 +164,7 @@ svg.cam { opacity: .25; filter: grayscale(1); } svg.cam.on { opacity: 1; filter:
 #nav { position: absolute; left: 10px; top: 10px; z-index: 3; display: none; gap: 6px; }
 body.loaded:not(.embed) #nav { display: flex; }
 #nav button { padding: 3px 8px; font-size: 12px; background: rgba(30,30,30,.85); }
+body.phone #nav { left: calc(22px + env(safe-area-inset-left)); }   /* a phone: a little further in than the 10 px elsewhere (Pete) */
 /* ?embed: the player alone, a thin bar over the bottom that shows on hover */
 body.embed #bar { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.6); border: 0; padding: 6px 10px; opacity: 0; transition: opacity .2s; }
 body.embed:hover #bar, body.embed.paused #bar { opacity: 1; }
