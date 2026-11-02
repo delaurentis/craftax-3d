@@ -201,7 +201,7 @@ export interface CraftaxModule {
   FLAGS: { SINGLE_STEP: number; KEEP_DEAD: number; ACTION_MASK: number };
 }
 
-/** A bot in the registry (public/models.json), a plugin's, or one of your own (agent.ts myAgents). */
+/** A bot in the registry (craftax-agents' models.json, copied to public/), a plugin's, or one of your own (agent.ts myAgents). */
 export interface ModelEntry extends BotModel {
   id: string;
   name: string;

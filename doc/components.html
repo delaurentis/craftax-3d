@@ -497,11 +497,11 @@ ul.notes li{margin:6px 0}
 
 <div class="card c-hw">
 <h3>Bots</h3>
-<p>The playable models are listed in <code>public/models.json</code> (the first is the default); each loads lazily in its own worker, only once picked, and runs as ONNX in onnxruntime-web: observation and action mask in, an action out (greedy or sampled). The bot panel's neuron brain shows the action probabilities; the Research screen lists the papers and the agents.</p>
+<p>The playable models are listed in craftax-agents' <code>models.json</code>, copied to <code>public/models.json</code> by <code>tools/runtime-files.ts</code> (the first is the default); each loads lazily in its own worker, only once picked, and runs as ONNX in onnxruntime-web: observation and action mask in, an action out (greedy or sampled). The bot panel's neuron brain shows the action probabilities; the Research screen lists the papers and the agents.</p>
 <dl>
 <dt>Key files</dt><dd><code>js/agent.ts</code>, <code>js/agent-worker.ts</code>, <code>js/brain.ts</code>, <code>js/research.ts</code>, <code>public/models.json</code>, <code>public/agent/ort/</code> (fetched at build)</dd>
 <dt>Depends on</dt><dd><code>onnxruntime-web</code>, <code>src/core</code></dd>
-<dt>Extension points</dt><dd>Slots <code>bot</code> (other kinds of bot, each in its plugin's worker) and <code>brainView</code>. New ONNX agents: a <code>models.json</code> entry.</dd>
+<dt>Extension points</dt><dd>Slots <code>bot</code> (other kinds of bot, each in its plugin's worker) and <code>brainView</code>. New ONNX agents: an entry in craftax-agents' <code>models.json</code>.</dd>
 </dl>
 </div>
 

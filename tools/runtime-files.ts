@@ -1,7 +1,8 @@
-// Puts the two built pieces the game loads at run time where it looks for them (both git-ignored):
+// Puts the pieces the game loads at run time where it looks for them (all git-ignored):
 //   public/agent/ort/   onnxruntime-web, which runs the bots, from node_modules (npm install brings it)
 //   engine/             the Craftax engine, from the craftax-wasm package (npm, or the checkout beside this one that the
 //                       workspace links in its place) or CRAFTAX_WASM
+//   public/models.json  the agent registry, from the craftax-agents package (npm, or the linked checkout): one list, kept there
 // Runs before `npm run dev` and `npm run build`; a missing engine stops with a message saying how to get one.
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -30,6 +31,12 @@ for (const f of ["ort.wasm.bundle.min.mjs", "ort-wasm-simd-threaded.mjs"]) {
   if (t.split(MEM).length !== 2) { console.error(`runtime-files: onnxruntime-web's ${f} has changed: its memory isn't made as expected (${MEM})`); process.exit(1); }
   writeFileSync(p, t.replace(MEM, MEM.replace("maximum:65536", "maximum:globalThis.ORT_MAX_PAGES||65536")));
 }
+
+// the agent registry: craftax-agents' own models.json (its package ships it), so the list the game offers is the one agents are
+// added to there
+const agents = pkgDir("craftax-agents"), reg = agents && join(agents, "models.json");
+if (!reg || !existsSync(reg)) { console.error("runtime-files: the game needs craftax-agents' models.json: npm install brings it, or a craftax-agents checkout in the workspace"); process.exit(1); }
+cpSync(reg, join(root, "public", "models.json"));
 
 // where the engine comes from: CRAFTAX_WASM, else the craftax-wasm package (from npm, or the checkout the workspace links in)
 const files = ["js/craftax.mjs", "js/meta.json", "build/craftax.mjs"];

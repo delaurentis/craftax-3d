@@ -215,7 +215,7 @@ const config: CraftaxConfig = { site: "https://playcraftax.com", plugins: [winte
 | `src/core/` | the plugin system (`plugins.ts`) and the game's events (`events.ts`) |
 | `src/config.ts`, `craftax.config.ts` | which plugins a copy of the game loads, and its home site |
 | `js/` | the game: rendering, the HUD, input, bots, recording and replay |
-| `public/` | art, sounds, fonts and the bot registry, served as they are |
+| `public/` | art, sounds and fonts, served as they are (the bot registry is copied in from craftax-agents) |
 | `plugins/` | example plugins |
 | `doc/` | how the system fits together (`doc/components.html`, `doc/themes.md`) |
 
