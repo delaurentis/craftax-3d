@@ -65,7 +65,7 @@ body.no-ach #toasts { display: none !important; }   /* Settings → Gameplay →
 @keyframes heartflash { 50% { filter: brightness(3) drop-shadow(0 0 4px #fff); } }
 .bar .zzz { position: absolute; right: -46px; top: -4px; pointer-events: auto; cursor: pointer; font: inherit; font-size: 12px; font-weight: bold;
   color: #cfe0ff; background: rgba(20,24,48,.7); border: 2px solid #6a78b0; padding: 2px 5px; text-shadow: 1px 1px 0 #000; }
-.bar .zzz:hover { border-color: #fff; color: #fff; }
+@media (hover: hover) { .bar .zzz:hover { border-color: #fff; color: #fff; } }   /* (a touch screen keeps a tapped button "hovered", and the bars are redrawn every move: it blinked white, Pete) */
 .bar .zzz.on { animation: zzz 1.2s ease-in-out infinite; }
 @keyframes zzz { 50% { transform: translateY(-3px); opacity: .55; } }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 15% { transform: translateX(-5px); } 35% { transform: translateX(5px); }

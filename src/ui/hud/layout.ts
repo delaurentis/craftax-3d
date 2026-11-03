@@ -26,7 +26,7 @@ export function placePadsBtn() {
   const food = document.querySelector<HTMLElement>('.bar[data-k="food"]');
   if (PORTRAIT_PHONE.matches && !document.body.classList.contains("unified") && !document.body.classList.contains("nopad") && food && food.offsetParent) {
     const f = food.getBoundingClientRect();
-    Object.assign(st, { right: "auto", top: "auto", left: `${innerWidth - f.right}px`, bottom: `${innerHeight - f.top + 6}px`, width: "44px", height: "28px" });
+    Object.assign(st, { right: "auto", top: "auto", left: `${innerWidth - f.right}px`, bottom: `${innerHeight - f.top + 6}px`, width: "44px", height: `${Math.round(tsleep.getBoundingClientRect().height) || 36}px` });   // (Zzz's height: the view buttons' where there's room, Pete)
     return;
   }
   const z = document.body.classList.contains("nopad") && !LANDSCAPE_PAD.matches ? document.querySelector(".bar .zzz") : $("touch")!.offsetParent && tsleep;   // (on its side Zzz is the key, pad or not)

@@ -6,8 +6,8 @@
 @media (max-width: 720px), (max-height: 520px) {
   #info { top: 6px; left: 6px; font-size: 12px; pointer-events: auto; max-width: calc(100vw - 200px); }   /* up to the top bar at the right (you-or-bot sits with it now): its 190 px of buttons, 6 px in, 4 px apart; so "Gnomish Mines" (173 px, pips and all) fits a 375 px iPhone (Pete) */
   #info .plaque { cursor: pointer; white-space: nowrap; gap: 4px; max-width: 100%; box-sizing: border-box; padding-left: 6px; padding-right: 6px; } #info .plaque .day { display: none; }   /* one row: the moon/sun dial says day or night */
-  #info .plaque b { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; } #info .pips { gap: 1px; flex: none; } #info .pips i { width: 2px; height: 9px; } #info .dial { width: 11px; height: 11px; } #info .plaque::after { content: "▾"; margin-left: 2px; opacity: .7; }
-  #info.open .plaque::after { content: "▴"; }
+  #info .plaque b { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; } #info .pips { gap: 1px; flex: none; } #info .pips i { width: 2px; height: 9px; } #info .dial { width: 11px; height: 11px; } #info .plaque::after { content: ""; flex: none; width: 14px; height: 8px; margin-left: 4px; opacity: .7; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h7v1H6v1H5v1H4v1H3V3H2V2H1V1H0z' fill='%23fff'/%3E%3C/svg%3E") center / 100% 100% no-repeat; image-rendering: pixelated; }   /* in pixel art, 2 px pixels (Pete) */
+  #info.open .plaque::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 4' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h1v1h1v1h1v1h1v1H0V3h1V2h1V1h1z' fill='%23fff'/%3E%3C/svg%3E"); }
   #info:not(.open) > :not(.plaque) { display: none; }
   #gear { display: none; }
   body.hud-open #gear { display: flex; left: 6px; right: auto; top: var(--gear-y, 150px); z-index: 4; }
@@ -179,6 +179,7 @@ canvas#view { touch-action: none; -webkit-user-select: none; user-select: none; 
 #tsleep::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(140,160,255,.55); transition: width .2s; }
 #tsleep.hold { opacity: 1; border-color: #fff; } #tsleep.hold::before { width: 100%; transition: width 1s linear; }
 body.touch .bar .zzz { display: none; }
+body.touch #btn-shot { display: none; } @media (pointer: coarse) { #btn-shot { display: none; } }   /* a touch screen: no screenshot button for now, only Record (Pete: the phone's own screenshot is a press away; the replay page's keeps the HUD) */
 #tuse img:not([src]) { display: none; }
 /* Use and Sleep (Pete): labels in the pixel font, on a dark plate with a shadow, so they read over sand and snow too */
 #tuse, #tsleep { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; -webkit-font-smoothing: none; background: rgba(0,0,0,.5); text-shadow: 2px 2px 0 #000; }
@@ -255,8 +256,9 @@ body.touch #settings .settings label.no-touch { display: none; }   /* mouse-only
   body.unified.autodig #touch #tpad [data-k="KeyW"] { grid-area: 1/2 !important; } body.unified.autodig #touch #tpad [data-k="KeyA"] { grid-area: 2/1 !important; }
   body.unified.autodig #touch #tpad [data-k="KeyD"] { grid-area: 2/3 !important; } body.unified.autodig #touch #tpad [data-k="KeyS"] { grid-area: 3/2 !important; }
   body.unified.autodig #touch #tpad .use-mid { grid-area: 2/2 !important; }
-  body:not(.unified) #touch #tsleep { bottom: calc(84px + var(--lift, 0px)); }   /* the corner pad upright: Zzz low on the right, over the food, its mirror (the touch-controls button) under the pad; all lifted by Controls height */
-  body:not(.unified) #touch #tpad { bottom: calc(var(--touch-y, 124px) + var(--lift, 0px)); } body:not(.unified) #touch #tuse { bottom: calc(var(--touch-y, 124px) + 34px + var(--lift, 0px)); }
+  body:not(.unified) #touch { --touch-y: clamp(136px, 18.5vh, 172px); --zh: clamp(26px, 4.3vh, 36px); }   /* the usual place higher than before, more on a taller phone (Pete: it sat too low, Zzz against the bottom bar; 172 px on a Pro Max, about 156 on a regular iPhone) */
+  body:not(.unified) #touch #tsleep { bottom: calc(var(--touch-y) + 24px - 2 * var(--zh) + var(--lift, 0px)); height: var(--zh); }   /* under Use: Use's foot (the pad's + 34) less 4, the …, 6, Zzz; as tall as the view buttons where there's room, shorter on a short phone (Pete) */   /* as tall as the view buttons, the … above it too (layout.ts placeInvBtn takes its size; Pete) */   /* the corner pad upright: Zzz low on the right, over the food, its mirror (the touch-controls button) under the pad; all lifted by Controls height */
+  body:not(.unified) #touch #tpad { bottom: calc(var(--touch-y, 124px) + var(--lift, 0px)); } body:not(.unified) #touch #tuse { bottom: calc(var(--touch-y, 124px) + 34px + var(--lift, 0px)); }   /* level with the arrows' middle (Pete) */
   body.unified.autodig #touch #tuse { bottom: calc(118px + var(--lift, 0px)); } body.unified.autodig #touch #tsleep { bottom: calc(118px + var(--lift, 0px)); }
   body.unified.autodig #slotname { bottom: calc(248px + var(--lift, 0px)); }
   body.unified #touch #tsleep.asking { width: 60px; min-width: 0; padding: 0 2px; white-space: normal; font-size: 12px; line-height: 1.25; text-align: center; }
@@ -274,7 +276,7 @@ body.nopad #slotname { position: static !important; }   /* back over the hotbar:
 /* on a phone, with no pad: Zzz sits above the food (Pete: the food and bolt rows grow at later levels and would run into it beside
    the bolts), the touch-controls button its mirror above the hearts; the bars' rows are one icon tall each, so 200% clears the food row */
 @media (max-width: 720px), (max-height: 520px) {
-  body.nopad .bar .zzz { position: absolute; right: 0; bottom: calc(200% + 8px); top: auto; margin: 0; width: 44px; height: 28px; justify-content: center; }
+  body.nopad .bar .zzz { position: absolute; right: 0; bottom: calc(200% + 8px); top: auto; margin: 0; width: 44px; height: 36px; justify-content: center; }   /* as tall as the view buttons; the … and the touch-controls button take its size (layout.ts, Pete) */
 }
 /* the touch controls, hidden or shown (Pete): the same switch as Settings' Touch controls; main.js places it as Zzz's mirror image
    (left for right, the same size: small over the hearts with no pad, the square beside the pad with it) */
@@ -283,7 +285,29 @@ body.nopad #slotname { position: static !important; }   /* back over the hotbar:
 #btn-pads svg { height: min(32px, max(18px, 70%)); width: auto; aspect-ratio: 1; }   /* grows with a square key, never past a short one's height (Pete) */
 #btn-pads .show { display: none; } body.nopad #btn-pads .show { display: block; } body.nopad #btn-pads .hide { display: none; }
 body.touch #btn-pads { display: grid; } @media (max-width: 720px), (max-height: 520px) { #btn-pads { display: grid; } }
-@media (max-height: 520px) and (orientation: landscape) { #btn-pads { bottom: auto; top: 44px; right: 4px; } }   /* on its side the bottom right is full (the …, Zzz): under the top bar's right end */
+@media (max-height: 520px) and (orientation: landscape) { #btn-pads { bottom: auto; top: 44px; right: 4px; } }
+/* a phone on its side, the brain expanded (Pete: the brain filled the panel and the sliders were below, off the screen): the brain
+   on the left as tall as the panel allows, its shape kept; the sliders, the buttons and any note in a column beside it */
+@media (max-height: 520px) and (orientation: landscape) {
+  #botpanel.big { display: grid !important; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: 14px; align-items: center; overflow: hidden; }
+  #botpanel.big > .head { grid-column: 1 / -1; }
+  #botpanel.big > .brain-box, #botpanel.big > canvas.brain, #botpanel.big > :not(.head):not(.pace):not(.st):not(.brain-opts) { grid-column: 1; grid-row: 2; }
+  #botpanel.big > :is(.pace, .st, .brain-opts) { grid-column: 2; }
+  #botpanel.big .brain-box { width: auto !important; }
+  #botpanel.big canvas.brain { width: auto !important; height: calc(100vh - 84px) !important; max-width: 100%; }
+  #botpanel.big .pace { max-width: none; margin: 0; }
+  #botpanel.big .temp { grid-template-columns: 1fr 44px; row-gap: 2px; font-size: 13px; } #botpanel.big .temp > span { grid-column: 1 / -1; }   /* the name above, the slider and its value under it: room to drag (Pete) */
+  #botpanel.big .temp { margin-bottom: 18px; }   /* room after each slider: the column has it (Pete) */
+  #botpanel.big .pace-btns { display: grid; grid-template-columns: 1fr; gap: 6px; }   /* Take over and Change agent stacked, the column's width (Pete) */
+  #botpanel.big .pace-btns .seg { position: absolute; left: 22px; bottom: 14px; z-index: 2; background: rgba(0,0,0,.55); }   /* pause and the gear on the brain's lower-left corner, as the mini brain's gear (Pete) */
+  #botpanel.big .pace-btns button.mc.small { width: 100%; }
+}
+/* a phone on its side with the agent's panel up (not expanded): the hearts and stats at the left, the full-screen button under them
+   in the lower-left corner, near its usual place at the hotbar's left end (Pete) */
+@media (max-height: 520px) and (orientation: landscape) {
+  body:has(#botpanel[style*="block"]):not(:has(#botpanel.big)) #hud-bottom { left: 6px; right: auto; transform: none; width: auto; flex-direction: row; align-items: flex-end; gap: 8px; }
+  body:has(#botpanel[style*="block"]):not(:has(#botpanel.big)) #hotrow { order: -1; }   /* the full-screen button in the corner, the hearts and stats to its right (Pete) */
+}   /* on its side the bottom right is full (the …, Zzz): under the top bar's right end */
 body:has(.screen.on) #btn-pads, body:has(#botpanel[style*="block"]) #btn-pads { display: none !important; }
 /* the recipe card's button when it can be done: bright green (laser: a lit red; phosphor: lit green) */
 #btn-retry, #panel .card .go:not(:disabled) { background: #3c8a27; box-shadow: inset 2px 2px 0 #7bd459, inset -2px -3px 0 #1f5a12; }
@@ -317,6 +341,7 @@ body.touch #settings .subhead { display: flex; }
 #settings .subhead svg { width: 16px; height: 16px; flex: none; }
 #settings .agents { display: flex; flex-direction: column; gap: 4px; width: 100%; max-height: 196px; overflow-y: auto; flex: none; }   /* about five agents, then it scrolls */
 #settings .win { max-height: 88vh; overflow-y: auto; }   /* and the window itself never runs off the screen */
+@media (max-width: 720px) and (orientation: portrait) { #settings.screen.on { place-items: start center; padding-top: 54px; } }   /* a phone upright: Settings starts just under the top bar, its top in one place whatever its height (Pete: it re-centred as settings changed) */
 @media (min-width: 721px) and (min-height: 521px) { #settings .win { width: min(640px, calc(100vw - 16px)); height: min(720px, 88vh); } }   /* desktop: one size whichever tab or sub-tab is open, the longest scrolling inside (Pete: it changed size from tab to tab) */
 #settings .agents button { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 13px; color: #fff; cursor: pointer;
   background: rgba(255,255,255,.06); border: 2px solid #444; padding: 5px 8px; }
@@ -374,11 +399,13 @@ input[type="checkbox"]:focus-visible { outline: 2px solid var(--hi); outline-off
 #settings .targetrow { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; } #settings .targetrow label { display: flex; align-items: center; gap: 10px; }   /* Move to target, and Spam target beside it (Pete) */
 #settings :is(.caprow, .duorow) .rowhead { display: flex; align-items: center; gap: 24px; } #settings :is(.caprow, .duorow) label { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 #settings :is(.caprow, .duorow) > .optnote { padding-left: 30px; }   /* two switches on one line, the note under both (Pete) */   /* Capture the mouse, Invert on its first line (Pete) */
+@media (max-width: 720px) { #settings :is(.caprow, .duorow) .rowhead { flex-direction: column; align-items: flex-start; gap: 10px; } }   /* a phone: the two switches stacked, not side by side past the window's edge (Pete: Warnings when running low, Once per game) */
 body.touch #settings .caprow, body.touch #settings .optnote.no-touch { display: none; } @media (max-width: 720px), (max-height: 520px) { #settings .caprow, #settings .optnote.no-touch { display: none; } }
 #settings .slide .v { white-space: nowrap; }   /* a value keeps its unit */
 #settings .slide > span:first-child { min-width: 11em; }   /* every slider on a tab starts at the same place (Pete) */
 @media (min-width: 481px) { #settings [data-page=speed] .slide { flex-wrap: nowrap; } #settings [data-page=speed] .slide > span:first-child { min-width: 9em; }   /* Speed: name, slider and value on one line (Pete) */
   #settings [data-page=speed] .slide input[type=range] { width: 180px; flex: 0 1 180px; min-width: 80px; } }   /* (a phone: the name above, as every tab) */
+#settings #padlift-v { display: inline-block; min-width: 5.6em; text-align: right; }   /* one width whatever it says: the slider beside it doesn't grow and shrink under a finger (Pete) */
 @media (max-width: 480px) { #settings .slide { width: 100%; } #settings .slide > span:first-child { flex-basis: 100%; } #settings .slide input[type=range] { flex: 1 1 0; width: auto; min-width: 0; } }   /* phone: the name above, slider and value share the next line */
 #settings .settings label { max-width: 100%; } #settings select { min-width: 0; text-overflow: ellipsis; }   /* the wider font: a long option ends in … inside the window, not past it */
 #settings .tab .narrow { display: none; }

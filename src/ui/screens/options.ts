@@ -168,9 +168,10 @@ $("opt-turn")!.onchange = (e) => { arrowTurn = value(e); try { localStorage.setI
 // Controls height (Settings → Gameplay, Pete): the touch controls up (or down: below 0) from their usual place, on any screen and
 // either way up (phone.css's --pad-lift; each layout keeps them on the screen); 0 is the usual place; remembered
 {
-  const set = (v: number) => { document.body.style.setProperty("--pad-lift", `${v}px`); input("opt-padlift").value = String(v); $("padlift-v")!.textContent = v > 0 ? `${v} px up` : v < 0 ? `${-v} px down` : "usual"; };
+  const set = (v: number) => { document.body.style.setProperty("--pad-lift", `${v}px`); input("opt-padlift").value = String(v); $("padlift-v")!.textContent = v > 0 ? `+${v} px` : v < 0 ? `−${-v} px` : "usual"; };   // (short, in a box of one width: phone.css)
   set((() => { try { return Math.min(160, Math.max(-120, Number(localStorage.getItem("craftax3d.padlift")) || 0)); } catch { return 0; } })());
-  $("opt-padlift")!.oninput = (e) => { set(+value(e)); try { localStorage.setItem("craftax3d.padlift", value(e)); } catch {} };
+  // within 4 px of the usual place it snaps there (Pete: it was hard to land on; 8 left ±8 out of reach)
+  $("opt-padlift")!.oninput = (e) => { const v = Math.abs(+value(e)) <= 4 ? 0 : +value(e); set(v); try { localStorage.setItem("craftax3d.padlift", String(v)); } catch {} };
 }
 {
   const set = (v: number) => { input("opt-fov").value = String(v); $("fov-v")!.textContent = String(v); };

@@ -124,7 +124,7 @@ const AGENTS = [
   },
 ];
 
-// the code: ours (the game, the engine and the agent kit) and the ones the game and its agents come from
+// the code behind the game and its agents (Pete: one short line, no ours and theirs)
 // who made each (Pete: a name a repo, linking their GitHub page, in the links' yellow)
 const ME = ["Pete DeLaurentis", "https://github.com/delaurentis"], MATTHEWS = ["Michael Matthews", "https://github.com/MichaelTMatthews"];
 const REPOS = [
@@ -166,7 +166,7 @@ export function renderResearch(el: HTMLElement, which = tab) {
       + `<div class="entry" id="add-your-agent"><b>Try your agent</b><ol>${TRY.map((t) => `<li>${t}</li>`).join("")}</ol>${links([{ label: "FORMAT.md", href: REPO + "/blob/main/FORMAT.md" }])}</div>`
       + `<div class="entry" id="publish-your-agent"><b>Publish your agent</b><ol>${PUBLISH.map((t) => `<li>${t}</li>`).join("")}</ol>${links([{ label: "README", href: REPO + "#add-your-agent" }])}</div>`
     : tab === "repos"
-      ? `<p class="meta">The code: ours (the game, the engine and the agent kit), and the projects the game and its agents come from.</p>`
+      ? `<p class="meta">The code behind the game and its agents.</p>`
         + REPOS.map((r) => `<div class="entry"><b>${esc(r.name)}</b><p class="meta">by <a class="by" href="${esc(r.by[1])}" target="_blank" rel="noopener">${esc(r.by[0])}</a></p><p>${esc(r.about)}</p>${links([{ label: "GitHub", href: r.href }])}</div>`).join("")
       : `<p class="meta">The papers behind the game and its agents.</p>`
         + PAPERS.map((p) => `<div class="entry"><b>${esc(p.title)}</b><p class="meta">${esc(p.authors)} · ${esc(p.venue)} ${p.year}</p><p>${esc(p.why)}</p>${links(p.links)}</div>`).join("");
