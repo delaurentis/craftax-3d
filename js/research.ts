@@ -122,15 +122,26 @@ const AGENTS = [
     about: "The Craftax paper's PPO-RNN baseline, retrained to its reported score: one GRU of 512.",
     links: [{ label: "Craftax_Baselines", href: "https://github.com/MichaelTMatthews/Craftax_Baselines" }],
   },
+  {
+    name: "NeuralCrystal 27", params: "21M parameters", by: "NeuralCrystal", score: "27 / 226 over 580 games",
+    about: "An optical neural network: a simulated crystal with 80 etched surfaces sees the game board, lights up its next move, and changes its recurrent memory.",
+    links: [
+      { label: "weights", href: "https://huggingface.co/neuralcrystal/craftax-crystal" },
+      { label: "neuralcrystal.com", href: "https://neuralcrystal.com" },
+    ],
+  },
 ];
 
 // the code behind the game and its agents (Pete: one short line, no ours and theirs)
 // who made each (Pete: a name a repo, linking their GitHub page, in the links' yellow)
 const ME = ["Pete DeLaurentis", "https://github.com/delaurentis"], MATTHEWS = ["Michael Matthews", "https://github.com/MichaelTMatthews"];
-const REPOS = [
+// more: links beside GitHub (Pete: neuralcrystal.com on the engine)
+const REPOS: { name: string; by: string[]; about: string; href: string; more?: { label: string; href: string }[] }[] = [
   { name: "craftax-3d", by: ME, about: "This game: Craftax in your browser in 3D, with its views and looks, touch controls, agents to watch, and recording and replay.", href: "https://github.com/delaurentis/craftax-3d" },
   { name: "craftax-wasm", by: ME, about: "Craftax rewritten in C and compiled to WebAssembly, exact with the JAX original: the engine this game plays on.", href: "https://github.com/delaurentis/craftax-wasm" },
   { name: "craftax-agents", by: ME, about: "The agents' playable format, the converters, the checker and the registry of agents in this game.", href: REPO },
+  { name: "craftax-crystal", by: ME, about: "The neural crystal agent: a simulated optical chip that plays Craftax, and the code that runs it in your browser.", href: "https://github.com/delaurentis/craftax-crystal" },
+  { name: "neuralcrystal-typescript", by: ME, about: "The neural crystal engine in TypeScript, on npm as neuralcrystal: it simulates shining light through the crystal, on the CPU or the GPU.", href: "https://github.com/neuralcrystal/neuralcrystal-typescript", more: [{ label: "neuralcrystal.com", href: "https://neuralcrystal.com" }] },
   { name: "Craftax", by: MATTHEWS, about: "The original game and benchmark, in JAX.", href: "https://github.com/MichaelTMatthews/Craftax" },
   { name: "Craftax_Baselines", by: MATTHEWS, about: "The paper's PPO, PPO-RNN and other baselines.", href: "https://github.com/MichaelTMatthews/Craftax_Baselines" },
   { name: "PufferLib", by: ["Joseph Suarez", "https://github.com/jsuarez5341"], about: "Fast RL tooling and the C port of Craftax our engine is forked from.", href: "https://github.com/PufferAI/PufferLib" },
@@ -167,7 +178,7 @@ export function renderResearch(el: HTMLElement, which = tab) {
       + `<div class="entry" id="publish-your-agent"><b>Publish your agent</b><ol>${PUBLISH.map((t) => `<li>${t}</li>`).join("")}</ol>${links([{ label: "README", href: REPO + "#add-your-agent" }])}</div>`
     : tab === "repos"
       ? `<p class="meta">The code behind the game and its agents.</p>`
-        + REPOS.map((r) => `<div class="entry"><b>${esc(r.name)}</b><p class="meta">by <a class="by" href="${esc(r.by[1])}" target="_blank" rel="noopener">${esc(r.by[0])}</a></p><p>${esc(r.about)}</p>${links([{ label: "GitHub", href: r.href }])}</div>`).join("")
+        + REPOS.map((r) => `<div class="entry"><b>${esc(r.name)}</b><p class="meta">by <a class="by" href="${esc(r.by[1])}" target="_blank" rel="noopener">${esc(r.by[0])}</a></p><p>${esc(r.about)}</p>${links([{ label: "GitHub", href: r.href }, ...(r.more ?? [])])}</div>`).join("")
       : `<p class="meta">The papers behind the game and its agents.</p>`
         + PAPERS.map((p) => `<div class="entry"><b>${esc(p.title)}</b><p class="meta">${esc(p.authors)} · ${esc(p.venue)} ${p.year}</p><p>${esc(p.why)}</p>${links(p.links)}</div>`).join("");
   el.querySelectorAll<HTMLElement>("button.cp").forEach((b) => (b.onclick = () => {
