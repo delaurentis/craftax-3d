@@ -15,7 +15,7 @@
     "js/",
     "plugins/",
     "public/",
-    "!public/agent/",
+    "!public/agent/", "!public/models.json",
     "tools/",
     "vendor/",
     "README.md",
