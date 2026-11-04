@@ -52,7 +52,25 @@ export function setPixelLook(l: { ink: PixelInk; every: boolean } | undefined) {
 // a death's red (data-pixel-color="red"), in any look but one that inks every line
 const RED: PixelInk = { flat: ["#3a0a06", "#ff2a18"], stone: (t) => `rgb(${Math.round(255 - 70 * t)},${Math.round(96 - 66 * t)},${Math.round(82 - 52 * t)})` };
 
+// data-pixel-runs="C|RAFT|A|X| 3D": every second run one pixel size down, on the same baseline (the game's title, and a host's:
+// a whole pixel smaller, so the blocks stay clean, Pete). Each run is drawn as its own title, then they're laid side by side.
+function drawRuns(cv: HTMLCanvasElement) {
+  const px = +(cv.dataset.pixelSize || 9), margin = 2 + 3;                    // (a title's canvas: a pixel each side, then its depth)
+  const runs = cv.dataset.pixelRuns!.split("|").map((text, i) => {
+    const p = i % 2 ? px - 1 : px, c = document.createElement("canvas");
+    Object.assign(c.dataset, cv.dataset, { pixelText: text, pixelSize: String(p) }); delete c.dataset.pixelRuns;
+    draw(c);
+    return { c, p, w: c.width - margin * p };                                 // w: its letters alone
+  });
+  cv.width = runs.reduce((n, r) => n + r.w + r.p, -runs[runs.length - 1].p) + margin * px; cv.height = (7 + margin) * px;
+  cv.style.width = cv.width + "px"; cv.style.height = cv.height + "px";
+  const g = cv.getContext("2d")!;
+  let x = px;
+  for (const r of runs) { g.drawImage(r.c, x - r.p, 8 * (px - r.p)); x += r.w + r.p; }
+}
+
 function draw(cv: HTMLCanvasElement) {
+  if (cv.dataset.pixelRuns) return drawRuns(cv);
   const text = cv.dataset.pixelText!, flat = "pixelFlat" in cv.dataset;
   const gap = 1, depth = flat || "pixelEngraved" in cv.dataset ? 1 : 3;
   const ink = look?.every ? look.ink : cv.dataset.pixelColor === "red" ? RED : look && "pixelOutline" in cv.dataset ? look.ink : null;

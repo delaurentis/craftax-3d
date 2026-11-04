@@ -270,14 +270,15 @@ button.mc.small { min-width: 0; font-size: 14px; padding: 5px 10px; }
   align-items: center; gap: 6px; animation: payoff-out 2s forwards; }
 #payoff img { width: 112px; height: 112px; image-rendering: pixelated; position: relative; filter: drop-shadow(0 0 12px rgba(255,230,120,.8));
   animation: payoff-pop .5s cubic-bezier(.2,1.6,.4,1) both; }
-#payoff b { font-size: 30px; font-weight: normal; color: var(--hi); text-shadow: 3px 3px 0 #000; position: relative; animation: payoff-pop .5s .08s cubic-bezier(.2,1.6,.4,1) both; }
-#payoff span { font-size: 16px; color: #fff; text-shadow: 2px 2px 0 #000; position: relative; animation: payoff-pop .5s .14s cubic-bezier(.2,1.6,.4,1) both; }
+#payoff .words { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 14px; background: rgba(0,0,0,.65); border: 2px solid #8b8b8b;   /* the chest's panel behind the words, so they read over the world (Pete) */
+  animation: payoff-pop .5s .08s cubic-bezier(.2,1.6,.4,1) both; }
+#payoff canvas { display: block; }
 #payoff .rays { position: absolute; left: 50%; top: 56px; width: 340px; height: 340px; margin: -170px 0 0 -170px; border-radius: 50%;
   background: repeating-conic-gradient(rgba(255,220,90,.45) 0 10deg, transparent 10deg 30deg);
   -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%);
   animation: payoff-rays 2s linear forwards; }
 #payoff.levelUp .rays { background: repeating-conic-gradient(rgba(190,120,255,.5) 0 10deg, transparent 10deg 30deg); width: 420px; height: 420px; margin: -210px 0 0 -210px; }
-#payoff.potion b { font-size: 46px; color: #7dff7d; } #payoff.potion span { font-size: 20px; } #payoff.potion { top: 24%; }   /* above you, so the drinking shows */ #payoff.potion.bad b { color: #ff6050; }   /* a potion: its effect, big */
+#payoff.potion { top: 24%; }   /* above you, so the drinking shows */
 #payoff.bad .rays { background: repeating-conic-gradient(rgba(255,70,50,.35) 0 10deg, transparent 10deg 30deg); }
 #payoff.levelUp img { filter: drop-shadow(0 0 16px rgba(200,140,255,.9)); }
 @keyframes payoff-pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }

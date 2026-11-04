@@ -320,7 +320,9 @@ export class Hud {
     $("payoff")?.remove();
     const el = document.createElement("div");
     el.id = "payoff"; el.className = kind + (potion ? " potion" : "");
-    el.innerHTML = `<div class="rays"></div><img src="${icon}"><b>${head}</b><span>${name}</span>`;
+    el.innerHTML = `<div class="rays"></div><img src="${icon}"><div class="words"><b><canvas data-pixel-size="${potion ? 4 : 3}" data-pixel-max="340"${kind === "bad" ? ' data-pixel-color="red"' : ""} role="img"></canvas></b><span><canvas data-pixel-flat data-pixel-size="2" data-pixel-max="340" role="img"></canvas></span></div>`;
+    const [headCv, nameCv] = el.querySelectorAll("canvas");                   // both lines in the title's pixel font, as the chest's are (Pete)
+    pixelText(headCv, head.replace("−", "-")); pixelText(nameCv, name.replace("×", "x"));   // (the font has only a hyphen and an x)
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2000);
     return kind === "bad" ? "hurt" : kind;
