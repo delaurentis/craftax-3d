@@ -1,4 +1,5 @@
 import { REPO } from "./agent";
+import { config } from "../src/config";
 
 // The Research screen (the start menu's Research button): the papers behind Craftax and the agents here, then the agents you can watch
 // (the bot window's picker, public/models.json) and where each came from. Each paper checked against its arXiv / proceedings page.
@@ -150,15 +151,16 @@ const REPOS: { name: string; by: string[]; about: string; href: string; more?: {
 // a copy button beside a command (Pete): copies it, says "Copied" for a moment (renderResearch wires it)
 const COPY = (t: string) => ` <button class="cp" data-copy="${t}" aria-label="Copy" title="Copy"><svg viewBox="0 0 12 12" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true">`
   + `<path d="M4 1h7v7h-1V2H4z" fill="currentColor"/><path d="M1 4h7v7H1zM2 5v5h5V5z" fill="currentColor"/></svg></button>`;
+const HOME = (config.site || "https://playcraftax.com").replace(/^https?:\/\//, "");   // this site's name, in the steps below
 // how an agent gets into the game, in two parts (Pete): trying it yourself, then publishing it for everyone (craftax-agents' README)
 const TRY = [
   "Export it to ONNX: <code>obs</code> [1, 843] in (the engine's packed observation), <code>logits</code> [1, 43] out; any memory as inputs fed back from outputs named <code>X_out</code>.",
   "Check it on the engine: <code>python -m craftax_agents.check_model your.onnx</code>" + COPY("python -m craftax_agents.check_model your.onnx"),
-  "Play it on playcraftax.com: <b>Test My Agent</b> below (or Settings, Agent), with a link to the file (Hugging Face works). It stays in your browser.",
+  `Play it on ${HOME}: <b>Test My Agent</b> below (or Settings, Agent), with a link to the file (Hugging Face works). It stays in your browser.`,
 ];
 const PUBLISH = [
   "Open a pull request to craftax-agents adding its entry to <code>models.json</code>: its name, a line about it, and the link to its file.",
-  "Once it's merged, your agent is in everyone's list on playcraftax.com.",
+  `Once it's merged, your agent is in everyone's list on ${HOME}.`,
 ];
 
 const esc = (s: unknown) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" } as Record<string, string>)[c]);
