@@ -6,6 +6,7 @@ import "three";
 import "./world";
 import "./models";
 import { Hud } from "./hud";
+import { renderResearch, routeTab } from "./research";
 import "./textures";
 import "./shading";
 import "./fell";
@@ -141,7 +142,8 @@ declare global { interface Window { cxReplay?: Player; cx?: Record<string, unkno
     }
     if (screens.screen === "start") show("start");                                  // Play or Continue, now the world is known
     if (FROM_REPLAY && screens.screen === "start") { backdropReveal(); show(null); renderState.introOrbit = false; flash("Playing on from the replay: a new world of yours"); }
-    if (location.hash === "#research") ($("btn-research")!.onclick as () => void)();         // a link to the Research screen (playcraftax /research/)
+    if (routeTab()) { renderResearch($("research-body")!, routeTab()); show("research"); }   // Research's own pages (/papers/, /agents/, /repos/, /research/)
+    else if (location.hash === "#research") ($("btn-research")!.onclick as () => void)();    // an older link to the Research screen
     // a new world starting up (Pete): the still at least MIN_STILL, then into the live world in phosphor, then colour; a saved world: its
     // own picture (or a still, if it has none yet), straight into the live world, never the green. Play goes at once (play)
     const saved = $("backdrop")?.dataset.saved === "1";

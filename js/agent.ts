@@ -40,7 +40,7 @@ export const buildHint = (m: ModelEntry): string => /^https?:/.test(src(m)) && n
   : sourceFor(m)?.hint ? sourceFor(m)!.hint!(m) : "export it with craftax-agents (see its README)";
 // your own agents (the bot panel's "Test your agent"): a link to an ONNX file in the playable format (craftax-agents' FORMAT.md),
 // kept in this browser's localStorage; its memory tensors are read off the model itself (each input X but obs comes back as X_out)
-export const REPO = "https://github.com/delaurentis/craftax-agents";       // where the format, the checker and the registry live
+export { REPO } from "./research-content";                                 // where the format, the checker and the registry live
 const MINE = "craftax3d.myAgents";
 const readMine = (): ModelEntry[] => { try { return JSON.parse(localStorage.getItem(MINE) || "[]"); } catch { return []; } };
 const writeMine = (l: ModelEntry[]) => { try { localStorage.setItem(MINE, JSON.stringify(l)); } catch {} };

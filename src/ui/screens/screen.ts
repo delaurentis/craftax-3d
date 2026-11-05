@@ -12,6 +12,7 @@ import { snaps } from "../snapshots";
 import { helpRows } from "./help";
 import { opt } from "./options";
 import type { ClickPrefs } from "./options";
+import { leaveResearchRoute, routeTab } from "../../../js/research";
 
 // this module's state that other modules set (one module can't assign another's let): hadLock, screen, clickPer, altFreed
 export interface Screens {
@@ -27,9 +28,10 @@ export interface Screens {
 export const screens = {} as Screens;
 
 // ---------- screens and input ----------
-screens.screen = "start";
+screens.screen = routeTab() ? "research" : "start";   // Research's own pages start on it
 export function show(id: string | null) {
   screens.screen = id; tele.screen(id);
+  if (id !== "research") leaveResearchRoute();
   if (id === "start" && game.S) $("btn-play")!.textContent = game.S.timestep > 0 && !(game.S.world && !game.S.world.you) ? "Continue" : "Play";   // a world under way
   if (id === "help") helpRows();
   for (const s of ["start", "dead", "panel", "help", "research", "settings", "servers", "worlds", "saves"]) $(s)!.classList.toggle("on", s === id);

@@ -33,6 +33,7 @@
 #research .tab.on, #help .tab.on, #settings .tab.on { color: var(--hi); text-shadow: 2px 2px 0 #3f3f00; background: #3a3a3a; box-shadow: inset 2px 2px 0 #222, inset -2px -2px 0 #5a5a5a; cursor: default; }
 #research .entry { padding: 10px 0; border-bottom: 2px solid #333; } #research .entry b { font-size: 15px; }
 #research .tab { font-family: "Craftax Pixel", "Courier New", monospace; font-size: 16px; line-height: 1.75; -webkit-font-smoothing: none; }   /* Papers / Agents / Repos: the pixel font, like Settings' tabs */
+#research a.tab { text-decoration: none; }   /* on a host's pages a tab is a link, for search engines */
 #research .tabs { margin-top: 0; }   /* as Settings' and Controls': the row starts at the padding edge, level with the close box */
 #research .x, #settings .x, #help .x { top: 5px; }   /* centered on the 44 px pixel-font tab row (sticky: top, not the margin, places it) */
 #research .head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; }   /* an agent's completion: the number each is judged by, big at the right (Pete) */
