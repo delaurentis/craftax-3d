@@ -33,6 +33,8 @@ uniform float uCrownSwap;                         // 1 while a theme switch chan
 uniform sampler2D uThemeP;                        // (each tile's progress through the switch, a texel a tile)
 uniform sampler2D uShapeK;                        // a theme's stones rising or sinking: each tile's column height now over the height it's built at
 uniform float uShapeOn;
+uniform sampler2D uRiseK;                         // a set piece arriving (src/scenes/rise.ts): each tile's height now, what stood there sinking, what's new growing
+uniform float uRiseOn;
 uniform vec2 uMapSize;
 uniform vec3 uPlayer;
 #ifdef GRASS3D
@@ -95,6 +97,7 @@ void main() {
 #endif
   if (aGrow > 1.5) { w.xz = aTree + (w.xz - aTree) * uShrink.x / 0.5; w.y *= uShrink.y / 0.55; }   // the overhead trees: as big as the shrinking full ones, down to their own size
   else if (aGrow > 0.5) { w.xz = aTree + (w.xz - aTree) * uShrink.x; w.y *= uShrink.y; }   // full-size trees shrinking to the overhead size
+  if (uRiseOn > 0.5 && aTree.x > -1000.0) w.y *= 4.0 * texture2D(uRiseK, (floor(aTree) + 0.5) / uMapSize).r;   // (trees, grass: into the ground; a rock under a building: up to 4× tall)
 #endif
 #ifdef WIND
   float ph = uTime * 1.6 + w.x * 0.7 + w.z * 0.5;

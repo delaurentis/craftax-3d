@@ -13,6 +13,7 @@ import { WorldLight } from "./light";
 import type { GameState } from "../core/types";
 import type { Placement } from "../themes/types";
 import { onScreen } from "../themes/state";
+import { riseView } from "../scenes/rise";
 
 /** One fountain basin (build): its middle, the half-width of its water, and its tile. */
 export interface Fountain { x: number; z: number; half: number; r: number; c: number }
@@ -174,6 +175,7 @@ export class World {
     this.key = null; this.fullNext = true;                                   // (built again: with them, or without, freeing their buffers)
   }
   update(s: GameState, makeProp: MakeProp): boolean {
+    s = riseView(this, s);                                                   // (a set piece arriving: the tiles it hasn't reached yet, src/scenes/rise.ts)
     this.lastS = s; this.lastProp = makeProp;
     this.notePlaced(s);
     const sealed = s.monsters_killed < 8;                                    // the ladder down sealed: its grate comes and goes with it

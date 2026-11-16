@@ -7,7 +7,7 @@
 // spawn_land, spawn_grave, spawn_water, [9][H] uint64 each). The maps are found by matching the overworld's own bytes, no offset
 // assumed; the spawn masks are kept as the engine keeps them (refresh_spawn_cell), and checked against the overworld first: an engine
 // laid out otherwise is left alone.
-import { activeScene } from "./active";
+import { activeScene, heldBack } from "./active";
 import type { CraftaxEngine, CraftaxGame, EngineState, Mob } from "../core/types";
 import type { GeneratedLevel, Placement, Tile } from "../themes/types";
 
@@ -36,7 +36,7 @@ function readLevels(engine: CraftaxEngine, game: CraftaxGame, seed: number, flag
 /** The active scene's set pieces, written into the world the engine just made from `seed`. True if anything was written. */
 export function placeSetPieces(engine: CraftaxEngine, game: CraftaxGame, seed: number, flags: number): boolean {
   const scene = activeScene();
-  if (!scene) return false;
+  if (!scene || heldBack) return false;                             // (?scene=<id>&build: raised later, src/scenes/raise.ts)
   const levels = readLevels(engine, game, seed, flags), plans: [GeneratedLevel, Placement][] = [];
   for (const lv of levels) {
     let p: Placement | null = null;
@@ -99,13 +99,13 @@ function snapshot(game: CraftaxGame, level: number, map: readonly number[]) {
   };
 }
 
-/** Blocks written into the game where it is now (its floor on screen): the engine's own state, as a set piece writes. A tile with a
- *  creature on it is left. True if anything was written. */
-export function writeBlocks(game: CraftaxGame, writes: readonly { r: number; c: number; block: number }[]): boolean {
-  const s = game.state(), snap = snapshot(game, s.level, s.map);
-  if (!snap) return false;
+/** Blocks written into the game: the engine's own state, as a set piece writes, on floor `level` (default: the one on screen). A
+ *  tile with a creature on it is left. True if anything was written. */
+export function writeBlocks(game: CraftaxGame, writes: readonly { r: number; c: number; block: number }[], level?: number): boolean {
+  const s = game.state(), snap = snapshot(game, s.level, s.map), lv = level ?? s.level;
+  if (!snap || lv < 0 || lv >= LEVELS) return false;
   let n = 0;
-  for (const { r, c, block } of writes) if (r >= 0 && c >= 0 && r < snap.H && c < snap.W && !snap.mob(s.level, r, c)) { snap.write(s.level, r, c, block); n++; }
+  for (const { r, c, block } of writes) if (r >= 0 && c >= 0 && r < snap.H && c < snap.W && !snap.mob(lv, r, c)) { snap.write(lv, r, c, block); n++; }
   if (n) game.load(snap.bytes);
   return n > 0;
 }

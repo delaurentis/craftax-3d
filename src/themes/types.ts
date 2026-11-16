@@ -244,6 +244,10 @@ export interface Placement {
   solid?(x: number, y: number, z: number): boolean;
   /** Its own fog [near, far] (a far-off campus wants less). */
   fog?: [number, number];
+  /** Raised on demand (src/scenes/rise.ts): when the part drawn at (x, y, z) arrives, seconds from the start, `from` [x, z] where the
+   *  player stands; undefined: the default (the ground by its distance from you, then the rest course by course). Taken away, the
+   *  same backwards. */
+  arrive?(x: number, y: number, z: number, from: readonly [number, number]): number | undefined;
 }
 /** Set pieces: a scene's real content. Active when the page says ?scene=<id> (or `default`); its worlds then keep their own saves
  *  (craftax3d.scene.<id>.*), apart from the player's own. recognize() runs whatever the page, so a recording shows it anywhere. */

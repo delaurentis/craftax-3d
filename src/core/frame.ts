@@ -18,7 +18,9 @@ import { outlinePass } from "../looks/shared/outline-pass";
 import { grassWatch } from "../render/quality";
 import { bones, bursts, dying, felling, world } from "../render/arm";
 import { WALK_MS, api, flat, game, keys, mobs, shots, viewYaw, type Entity } from "./game";
-import { chestUpdate } from "../effects/chest";
+import { chestState, chestUpdate, flushWorld } from "../effects/chest";
+import { riseTick } from "../scenes/rise";
+import { riseFx, riseFxTick } from "../scenes/rise-fx";
 import { apply } from "./apply";
 import { shotFx } from "../effects/shots";
 import { victoryFx } from "../effects/tunnel";
@@ -219,6 +221,8 @@ export function frame(now: number) {
   felling.update(now); dying.update(now); bursts.update(now); bones.update(now); chestUpdate(now);
   world.updateLight(now); world.updateFountains(now); world.updateGreenFlames(now);
   themeTick(now);                                                          // a theme switching: its wave or fade (src/themes/transition.ts)
+  if (riseTick(world, now, riseFx)) { chestState.worldDirty = true; flushWorld(); }   // a set piece arriving or going (src/scenes/rise.ts)
+  riseFxTick(now);
   weatherTick(now, p, game.S.level);                                                     // and its weather: snow falling... (src/themes/weather.ts)
   if (falls2D.length && flat.mode === 1 && flat.picture === 1 && net.local && now - views.fallDrawn > 40) { views.fallDrawn = now; refresh2D(); }
   eyeLights(now);

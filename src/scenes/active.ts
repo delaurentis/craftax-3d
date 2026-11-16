@@ -11,6 +11,17 @@ export function activeScene(): SetPieces | null {
   if (asked) return all.find((s) => s.id === asked) ?? null;
   return [...all].reverse().find((s) => s.default) ?? null;
 }
+// raising a set piece into the world you're in, and taking it away again (I, src/scenes/raise.ts): only on a page that asks for it.
+//   ?build=<id>[,<id>]   those scenes, in any world (your own saves too)
+//   ?scene=<id>          that scene; with &build its new worlds start without it, until you raise it
+const build = location.search.match(/[?&]build(?:=([\w,-]*))?(?=&|#|$)/);
+/** ?scene=<id>&build: new worlds are made without the scene's set pieces (raised later, on demand). */
+export const heldBack = !!asked && !!build && !build[1];
+/** The scenes this page lets you raise and take away (none: the I key does nothing). */
+export function raisable(): SetPieces[] {
+  const ids = [...(build?.[1] ? build[1].split(",") : []), ...(asked ? [asked] : [])];
+  return listed("setPieces").filter((s) => ids.includes(s.id));
+}
 /** The storage prefix and database name for this page's worlds: a scene keeps its own, apart from the player's real ones. */
 export const sceneStore = (): { ns: string; db: string } | null => {
   const s = activeScene();

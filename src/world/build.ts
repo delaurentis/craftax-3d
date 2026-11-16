@@ -13,6 +13,7 @@ import { crownsMorphing, drawCrown, drawMorph, stampCrown, standardCrown, standa
 import { onScreen, trunkBase, trunkInset } from "../themes/state";
 import { sceneSky } from "../themes/sky";
 import { placementFor } from "../scenes/active";
+import { risePiece, riseTile } from "../scenes/rise";
 import type { Remap } from "./geo";
 import type { CrownBox, Theme } from "../themes/types";
 import type { Tex } from "./blocks";
@@ -39,7 +40,7 @@ export class WorldBuild {
     this.stdH = this.heights();
     this.h = themeHeights(this, this.stdH);                         // (a theme's shapes, eased in by a wave: src/themes/blocks.ts)
     // a scene's set piece in this floor, found from the map (src/scenes/active.ts): drawn over it, its fog
-    const piece = this.piece = placementFor({ level: this.level, seed: s?.seed ?? 0, size: [H, W], map: this.map, items: this.items }, `${this.key}|${s?.seed}`);
+    const piece = this.piece = risePiece() ?? placementFor({ level: this.level, seed: s?.seed ?? 0, size: [H, W], map: this.map, items: this.items }, `${this.key}|${s?.seed}`);
     sceneSky.fog = piece?.fog ?? null;
     if (!dirty || !this.portc) this.portc = this.level === 4 ? this.portcullises() : null;   // (after the heights: they need them)
     // this world's flower colours: three of the 16 (textures.ts flower_colors), picked by its seed (Pete)
@@ -98,7 +99,7 @@ export class WorldBuild {
         if (piece?.covers?.(r, c)) continue;                     // (the set piece stands there instead)
         const b = this.at(r, c), L = this.lightAt(r, c), x0 = c, x1 = c + 1, z0 = r, z1 = r + 1, hh = this.height(r, c);
         remap(themeRemap(this, r, c));
-        o.tree = shapeRun.ends ? [c + 0.5, r + 0.5] : null;      // (stones moving: each face knows its own tile, so a whole face moves as one)
+        o.tree = shapeRun.ends || riseTile(r, c) ? [c + 0.5, r + 0.5] : null;   // (stones moving, or a set piece arriving: each face knows its own tile, so a whole face moves as one)
         const g = b in GROUND ? b : base;
         ids((g + 1) * 4096);
         // ground slab under everything that is not a liquid or a full-height column

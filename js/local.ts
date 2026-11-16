@@ -8,6 +8,8 @@ import { SHIPPED } from "./build";
 import * as tele from "./telemetry";
 import { sceneStore } from "../src/scenes/active";
 import { clearWay, placeSetPieces } from "../src/scenes/place";
+import { applyBlocks, toggle as raiseToggle, type RaiseHost } from "../src/scenes/raise";
+import { savesDb } from "./saves-db";
 import { decodeReset, encode, encodeReset, replayReply, snapshot, type KeptReply } from "../src/replay/brain-rec";
 import type { Agent, BotReply, CraftaxEngine, CraftaxGame, CraftaxModule, EngineOp, EngineState, GameState, Meta, ModelEntry, Pos, RecHead, Recording, SaveRecord, UiOp, WorldSummary, ApiBody as Body } from "../src/core/types";
 // a plugin's bot (a crystal player, say) may see something other than the packed observation: its source says what (observe)
@@ -109,9 +111,11 @@ function applyOp(o: EngineOp | UiOp) {
     case "place": game.place(o.r, o.c); break;
     case "boss": game.bossSet?.(o.hits); break;
     case "kill": for (const [r, c] of o.cells) game.killAt?.(r, c); break;
+    case "blocks": applyBlocks(game, o); break;                       // a set piece raised or taken away (src/scenes/raise.ts)
   }
   t++;
 }
+const raiser: RaiseHost = { cx: () => cx, game: () => game, flags: () => fl, seed: () => seed, world: () => world, get: (k) => store.get(k), set: (k, v) => store.set(k, v), op };
 const store = {
   get(k: string) { try { return localStorage.getItem(NS + k); } catch { return null; } },
   set(k: string, v: string | number | boolean) { try { localStorage.setItem(NS + k, String(v)); } catch {} },
@@ -207,27 +211,8 @@ function died() {
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 function nextName() { const n = (Number(store.get("worlds")) || 0) + 1; store.set("worlds", n); return "World " + n; }
 
-// IndexedDB: one record a world ({id, name, seed, version, updated, floor, score, steps, done, snap})
-let db: Promise<IDBDatabase> | null = null;
-const open = () => (db ??= new Promise((ok, fail) => {
-  const r = indexedDB.open(DB, 1);
-  r.onupgradeneeded = () => r.result.createObjectStore("worlds", { keyPath: "id" });
-  r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error);
-}));
-// any: a request's result is whatever the store holds (a SaveRecord, a list of them, or a key)
-const txn = async (mode: IDBTransactionMode, f: (st: IDBObjectStore) => IDBRequest): Promise<any> => {
-  const d = await open();
-  return new Promise((ok, fail) => {
-    const tx = d.transaction("worlds", mode), r = f(tx.objectStore("worlds"));
-    tx.oncomplete = () => ok(r.result); tx.onerror = () => fail(tx.error);
-  });
-};
-const saves = {
-  put: (rec: SaveRecord) => txn("readwrite", (st) => st.put(rec)),
-  get: (id: string): Promise<SaveRecord | undefined> => txn("readonly", (st) => st.get(id)),
-  all: (): Promise<SaveRecord[]> => txn("readonly", (st) => st.getAll()),
-  del: (id: string) => txn("readwrite", (st) => st.delete(id)),
-};
+const saves = savesDb(DB);                                                   // My Worlds (js/saves-db.ts)
+
 // switch to a saved world: the one you leave is saved first; the bot (if it's playing) carries on in the new one, its memory fresh
 function enter(rec: SaveRecord) {
   if (rec.version !== cx.version) throw new Error("that world was saved by another version of the game");
@@ -392,6 +377,7 @@ const routes: Record<string, (b: Body, q?: URLSearchParams) => unknown> = {
     tele.track("custom_agent_added", { host: new URL(b.url).host });   // the host only, never the link
     return routes["POST /api/bot"]({ id: m.id });
   },
+  "POST /api/scene": (b) => { const r = raiseToggle(raiser, b.id); played(); save(); t++; return { ...state(), scene: r }; },   // I: a set piece raised or taken away (?build=<id>)
   "POST /api/portal-way": (b) => { if (clearWay(game, (b.cells || []) as number[][])) { played(); t++; } return state(); },   // the victory portal's way in, its tombstones cleared (src/scenes/place.ts clearWay); not an op
   "POST /api/debug/place": (b) => { if (!GOD) return state(); game.place(b.r | 0, b.c | 0); op({ k: "place", r: b.r | 0, c: b.c | 0 }); played(); return state(); },   // ?god's ghost, back in a body where it drifted to
   "POST /api/debug/floor": (b) => { game.teleport(b.level | 0); op({ k: "floor", level: b.level | 0 }); played(); t++; return state(); },

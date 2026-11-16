@@ -271,7 +271,9 @@ export type EngineOp =
   | { k: "floor"; level: number }
   | { k: "place"; r: number; c: number }
   | { k: "boss"; hits: number }
-  | { k: "kill"; cells: Pos[] };
+  | { k: "kill"; cells: Pos[] }
+  /** Blocks written on a floor (a set piece raised or taken away, src/scenes/raise.ts): the creatures moved first, [r, c, to r, to c]. */
+  | { k: "blocks"; level: number; cells: [number, number, number][]; moves?: [number, number, number, number][] };
 /** A moment the engine doesn't keep (js/record.ts `ui`): hanging over the lava (d: the way), letting go, the scorch, the brain panel. */
 export interface UiOp { k: "ui"; e: string; d?: number | string | null }
 /** An op in a recording, at t ms from its start. */

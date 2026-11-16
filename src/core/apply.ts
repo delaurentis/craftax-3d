@@ -31,6 +31,7 @@ import type { GameState, Mob } from "./types";
 import { themedSide } from "../themes/blocks";
 import { themedText } from "../themes/names";
 import { surpriseWorld } from "../themes/ui";
+import { bigChange } from "../scenes/rise";
 
 export function apply(s: GameState) {
   const prev = game.S;
@@ -44,9 +45,10 @@ export function apply(s: GameState) {
   if (levelChanged || s.done) { felling.clear(); dying.clear(); bursts.clear(); bones.clear(); pathing.pending = null; if (game.hud) game.hud.pend = {}; }   // (nothing left in flight)   // a walk never outlives its floor
   if (levelChanged) world.resetGreen();                                     // (green torches belong to the floor the portal opened on)
   else {
+    const quiet = bigChange(prev.map, s.map);                               // (a set piece raised or taken away: nothing chopped or mined, src/scenes/rise.ts)
     for (let i = 0; i < s.map.length; i++) {
       const b = prev.map[i];
-      if (s.map[i] === b) continue;
+      if (s.map[i] === b || quiet) continue;
       const r = (i / s.size[1]) | 0, c = i % s.size[1], std = b === B.STALAGMITE ? "stone" : world.blockTex(b);   // a stalagmite is stone too
       const tex = std && themedSide(prev.map, s.size[1], s.size[0], prev.level, r, c, std, world.height(r, c) || 1, b === B.STONE && !prev.level && world.placed.has(i));   // (as a theme drew it)
       if (b === B.CHEST) {                                                  // a chest opened: the lid, the light, the loot

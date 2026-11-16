@@ -37,7 +37,7 @@ export const shared = {
   // a theme switching (src/themes/transition.ts; compiled only with a theme installed: THREE's THEMES define): the atlas being left,
   // each tile's progress (a texel a tile), on while it runs; the laser drawings of the tiles themes add, and whether there are any
   uMapFrom: { value: fromAtlas as THREE.Texture }, uThemeP: { value: null as THREE.Texture | null }, uThemeOn: { value: 0 },
-  uShapeK: { value: null as THREE.Texture | null }, uShapeOn: { value: 0 },   // (stones rising or sinking with a switch: transition.ts)
+  uShapeK: { value: null as THREE.Texture | null }, uShapeOn: { value: 0 }, uRiseK: { value: null as THREE.Texture | null }, uRiseOn: { value: 0 },   // (a set piece arriving: src/scenes/rise.ts)   // (stones rising or sinking with a switch: transition.ts)
   uThemeOut: { value: themeOutlines.tex as THREE.Texture }, uThemeOutOn: { value: 0 },
 };
 

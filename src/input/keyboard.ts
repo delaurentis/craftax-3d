@@ -25,6 +25,7 @@ import { typing } from "./touch";
 import { openPanel } from "../ui/screens/panel";
 import { fpsOn, setFps } from "../core/frame";
 import { cycleTheme } from "../themes/ui";
+import { canRaise, raiseKey } from "../scenes/raise-key";
 
 addEventListener("keydown", (ev) => {
   const e = ev as KeyboardEvent;
@@ -63,6 +64,8 @@ addEventListener("keydown", (ev) => {
     victoryNudge();
     if (victory.portal && game.S && game.S.done && ["Enter", "Space", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) { e.preventDefault(); enterPortal(); return; }
   }
+  // I: a set piece raised or taken away, on a page that asks (?build=<id>, ?scene=<id>: src/scenes/raise-key.ts)
+  if (e.code === "KeyI" && !e.repeat && !e.metaKey && !e.ctrlKey && !typing(e.target) && game.S && screens.screen === null && canRaise()) { e.preventDefault(); raiseKey(); return; }
   // T: the next theme (Shift+T: the one before): how the world is drawn, never the game (src/themes); in a replay too
   if (e.code === "KeyT" && !e.repeat && !e.metaKey && !e.ctrlKey && !typing(e.target) && game.S && (screens.screen === null || screens.screen === "dead")) { cycleTheme(e.shiftKey); return; }
   // dead (Pete): the look keys still work, to see your last moments other ways: C V B the views, M the mode, G graphics, K sound
