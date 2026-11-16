@@ -1,6 +1,6 @@
 // The replay page's side: the game's own view and look buttons and a theme menu for the keyframe you're on, the brain's size,
 // stepping between keyframes, and what the HUD shows.
-import { CAMERA, ICONS, LOOKS, VIEWS, addKey, endKey, renderKeys, sel, selectKey, themeOf } from "./keyframes";
+import { CAMERA, ICONS, LOOKS, SPLIT, VIEWS, addKey, endKey, renderKeys, sel, selectKey, themeOf } from "./keyframes";
 import { GAME } from "../../../js/record";
 import { $, fmt, keep, openState, sizeFrame } from "./open";
 import type { Cam, CamKey } from "../../core/types";
@@ -13,6 +13,10 @@ const rec = () => openState.rec!, P = () => openState.P!;                  // (a
 export function takeLooks(looks: Element | null) {
   if (!looks) return;
   $("side-looks")!.innerHTML = looks.innerHTML;
+  // the split screen (split-pop.ts): an icon beside the looks, the last of their row (Pete)
+  const split = Object.assign(document.createElement("button"), { title: "Split screen: two looks at once (/)", innerHTML: SPLIT.replace('width="16" height="16"', 'width="20" height="20"') });
+  split.dataset.split = ""; split.dataset.tip = "Split screen (/)"; split.setAttribute("aria-label", "Split screen");
+  $("side-looks")!.querySelector("#seg-art")?.append(split);
   // the same icons, small, for the keyframe list (Pete: icons, not words); a plugin look's name from its button's tip
   looks.querySelectorAll<HTMLElement>("[data-view]").forEach((b) => (ICONS["v" + b.dataset.view] = b.querySelector("svg")?.outerHTML || ""));
   looks.querySelectorAll<HTMLElement>("[data-art]").forEach((b) => {

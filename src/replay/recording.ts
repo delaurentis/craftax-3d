@@ -8,6 +8,7 @@ import { SPECTATE } from "../render/scene";
 import { armState } from "../render/arm";
 import { flat, game } from "../core/game";
 import { lookState, pickedLook, setSkin } from "../looks/looks";
+import { splitState } from "../looks/split";
 import { skinOf } from "../looks/registry";
 import { refresh2D, setLook, setView, syncLooks, views } from "../views/views";
 import { flash } from "../ui/hud/hint";
@@ -62,10 +63,15 @@ export function replayCam(c: Cam | null) {
   if (replayer.rec) {                                                       // the bot's brain as the keyframe in force sets it (replay.html), or as
     brainSize(replayer.brainAt(replayer.t) as "hidden" | "small" | "big");                                // the recording showed it
   }
+  // the split screen (keyframes): while one is being set, the keyframe's own, else the one in force; a look the split's other side has
+  // shown (a line swept off screen, or the sides changing places) comes in at once, the picture already wearing it (split-sweep.ts)
+  const was = splitState.now;
+  if (replayer.rec) splitState.now = (replayer.free ? replayer.camKeyed(replayer.t)?.split : c?.split) ?? null;
   if (replayer.free) { replayer.aim = null; return; }                         // replay.html framing a shot: the view and camera are yours
   if (!c) return;
   const cut = replayer.cutNext; replayer.cutNext = false;
-  if (cut || c.look !== lookNow() || (!flat.picture && c.mode !== flat.mode)) goLook(c.mode, c.look, !!cut);
+  const swap = !!was && was.look === c.look && c.look !== lookNow();
+  if (cut || c.look !== lookNow() || (!flat.picture && c.mode !== flat.mode)) goLook(c.mode, c.look, !!cut || swap);
   replayTheme(c.theme ?? null, !!cut);
   if (c.yaw == null) {                                                      // first person with no recorded camera: face where they face
     const want = (<Record<number, number>>{ 1: Math.PI / 2, 2: -Math.PI / 2, 3: 0, 4: Math.PI })[game.S!.dir] ?? game.yaw;

@@ -12,6 +12,7 @@
 import { local } from "./local";
 
 import { service } from "../src/core/plugins";
+import { splitAt } from "../src/replay/split-sweep";
 import type { Cam, CamKey, CamRow, RecHead, RecOp, Recording, UiOp } from "../src/core/types";
 export const FORMAT = "craftax-recording";
 export const GAME = new URL(/* @vite-ignore */ "../", import.meta.url);                 // the game's folder (replay.html is also served at /replay/)
@@ -235,7 +236,8 @@ export const player: Player = {
     const a = keys[i] || null, b = keys[i + 1] || null;
     const camOf = (k: CamKey | null): Cam => (!k ? rc : { ...rc, mode: k.mode ?? rc.mode, look: k.look ?? rc.look, theme: k.theme !== undefined ? k.theme : rc.theme,
       ...(k.fixed ? { yaw: k.yaw!, pitch: k.pitch!, orbit: k.orbit!, el: k.el!, aim: 0 as const } : {}) });
-    const A = camOf(a);
+    const A = camOf(a), t0 = a ? a.t : 0;
+    A.split = splitAt(a, b, A.look, b ? camOf(b).look : A.look, b ? ease(Math.max(0, Math.min(1, (t - t0) / (b.t - t0 || 1)))) : 0);
     if (!b) return A;
     const B = camOf(b), gap = b.t - (a ? a.t : 0), w = a && a.fixed && b.fixed ? gap : Math.min(BLEND, gap);
     const u = (t - (b.t - w)) / (w || 1);

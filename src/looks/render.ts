@@ -17,7 +17,8 @@ import { grabShot, grabThumb, snaps } from "../ui/snapshots";
 import { TREE_B } from "../input/intent";
 import { godHalo, godState } from "../effects/god";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import type { LookView } from "./types";
+import { splitMat, splitSide } from "./split";
+import type { Look, LookView } from "./types";
 
 // this module's state that other modules set (one module can't assign another's let): introOn, introOrbit, camD
 export interface RenderState {
@@ -138,6 +139,25 @@ function renderSide(s: Side, sky0: Sky0, now: number) {
   }
   composer.render();
 }
+// the split screen (split.ts): both looks drawn, color's first as in a fade, the other in its own ink, then each kept on its side
+const splitQuad = new FullScreenQuad(splitMat);
+function renderSplit(to: Side, other: Side, ink: Look | null, sky0: Sky0, now: number) {
+  const otherFirst = !other.lines && to.lines;
+  composer.renderToScreen = false;
+  if (otherFirst) passInk(ink);
+  renderSide(otherFirst ? other : to, sky0, now);
+  const sz = composer.readBuffer;
+  if (fadeTarget.width !== sz.width || fadeTarget.height !== sz.height) fadeTarget.setSize(sz.width, sz.height);
+  copyMat.uniforms.tA.value = sz.texture; copyMat.uniforms.k.value = 0;
+  renderer.setRenderTarget(fadeTarget); copyQuad.render(renderer);
+  passInk(otherFirst ? lookState.skin : ink);
+  renderSide(otherFirst ? to : other, sky0, now);
+  passInk(lookState.skin);
+  splitMat.uniforms.tA.value = otherFirst ? composer.readBuffer.texture : fadeTarget.texture;
+  splitMat.uniforms.tB.value = otherFirst ? fadeTarget.texture : composer.readBuffer.texture;
+  renderer.setRenderTarget(null); splitQuad.render(renderer);
+  composer.renderToScreen = true;
+}
 export function renderLooks(now: number) {
   const sky0: Sky0 = { sky: sky.visible, stars: stars.visible, sun: sun.visible, moon: moon.visible, bg: scene.background };
   const f = lookState.fade, to = side();
@@ -158,7 +178,8 @@ export function renderLooks(now: number) {
     composer.renderToScreen = true;
   } else {
     lookState.fade = null;
-    renderSide(to, sky0, now);
+    const sp = splitSide(composer.readBuffer.width, composer.readBuffer.height);
+    if (sp) renderSplit(to, sp.other, sp.ink, sky0, now); else renderSide(to, sky0, now);
   }
   sky.visible = sky0.sky; stars.visible = sky0.stars; sun.visible = sky0.sun; moon.visible = sky0.moon; scene.background = sky0.bg;
   if (snaps.thumbWanted) grabThumb();

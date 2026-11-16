@@ -7,6 +7,7 @@ import { $, EMBED, fmt, openState } from "./open";
 import { setWindow, toggle, zoomMid } from "./transport";
 import { addKey, askPop, deleteKey, endKey, sel, setIn, setOut } from "./keyframes";
 import { stepKey } from "./side";
+import { openSplit } from "./split-pop";
 
 const rec = () => openState.rec!, P = () => openState.P!;                  // (a recording is open wherever these run)
 
@@ -22,6 +23,7 @@ export function onKey(e: KeyboardEvent) {
   if (e.code === "Escape") { if (embedPop.classList.contains("on")) embedPop.classList.remove("on"); else if (sharePop.classList.contains("on")) sharePop.classList.remove("on"); else endKey(); }
   else if (sel && (e.code === "Delete" || e.code === "Backspace")) { e.preventDefault(); deleteKey(sel); }   // (not the start's)
   else if (e.code === "BracketLeft" || e.code === "BracketRight") stepKey(e.code === "BracketLeft" ? -1 : 1);   // (the keyframe before, after)
+  else if (e.code === "Slash") { e.preventDefault(); openSplit(); }  // the split screen (a keyframe here if none is being set)
   else if (sel) return;                                                // (setting a keyframe: the game's other keys are the game's)
   else if (e.code === "KeyI") setIn();
   else if (e.code === "KeyO") setOut();

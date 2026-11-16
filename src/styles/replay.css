@@ -210,3 +210,14 @@ body.phone :is(#lanetools, #lane, #rate, #loop, #volume) { display: none !import
 body.phone #bar { grid-template-columns: auto minmax(0, 1fr) auto; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); }
 body.phone #right2 { grid-row: 1; flex-direction: row; align-self: center; }
 @media (orientation: portrait) { body.phone #time { min-width: 0; } body.phone #time .total { display: none; } }   /* an upright phone: the time now, not the total (Pete: no room) */
+/* the split screen: its window beside the picture (not over it: the picture shows the split as you drag) */
+#splitpop { position: fixed; left: 12px; top: 12px; z-index: 11; } #splitpop[hidden] { display: none; }
+#splitpop .win { background: #1d1d1d; border: 2px solid #555; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.6); }
+#splitpop h2 { margin: 0; font-size: 18px; font-weight: normal; color: var(--hi); }
+#splitpop canvas { display: block; cursor: crosshair; touch-action: none; border: 1px solid #444; align-self: center; }
+#splitpop .sides, #splitpop .nums, #splitpop .row { display: flex; gap: 8px; align-items: center; } #splitpop .row { justify-content: flex-end; }
+#splitpop .sides label, #splitpop .nums label { display: flex; gap: 4px; align-items: center; color: var(--text); }
+#splitpop .nums input { width: 56px; box-sizing: border-box; font: inherit; -webkit-font-smoothing: none; color: #e8e8e8; background: #0c0c0c; border: 2px solid #222; border-bottom-color: #555; border-right-color: #555; padding: 4px 6px; outline: none; }
+#splitpop .nums input:focus { border-color: var(--hi); }
+#splitpop .sides { align-items: stretch; } #splitpop .sides select, #splitpop .sides button { height: 30px; box-sizing: border-box; } #splitpop .sides button { padding: 0 8px; line-height: 0; } #splitpop .sides button svg { display: block; } #splitpop .note { margin: 0; color: var(--dim); font-size: 12px; max-width: 320px; }
+#lane .key .spl { cursor: pointer; }

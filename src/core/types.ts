@@ -297,7 +297,15 @@ export interface Cam {
   aim: number[] | number;
   /** The theme on screen (its id; null or absent: Standard, and every recording from before themes). */
   theme?: string | null;
+  /** The split screen in force (replay keyframes only), mid-sweep or still. */
+  split?: SplitNow | null;
 }
+/** A keyframe's split screen (replay.html): a line through (x, y), fractions of the picture from its top left, at `ang` degrees (0:
+ *  level, turning counter-clockwise); `look` beyond it (below a level line), the keyframe's own look on this side. */
+export interface SplitKey { look: string; x: number; y: number; ang: number }
+/** The split screen at a moment (src/replay/split-sweep.ts): `push` is the line's travel off screen, -1 to 1 (0: where it was put; 1:
+ *  gone past the far edge of `look`'s side, none of it showing; -1: all of it). */
+export interface SplitNow extends SplitKey { push: number }
 /** A camera sample: [t, ...the CAM fields in order]. */
 export type CamRow = [number, ...(number | string | number[] | null)[]];
 /** A keyframe (replay.html): from t on, this view and look, the camera framed by hand (fixed), the brain panel's size. */
@@ -307,6 +315,8 @@ export interface CamKey {
   theme?: string | null;
   /** Read off the recorded camera (firstKey), not set by hand. */
   auto?: boolean;
+  /** From t on, the screen split between this look and another (the line sweeps from one keyframe's to the next). */
+  split?: SplitKey;
 }
 /** A recording (.cxreplay): see js/record.ts. */
 export interface Recording extends RecHead {

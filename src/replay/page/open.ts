@@ -64,7 +64,7 @@ export async function open(r: Recording) {
   await ready;
   openState.P = f.contentWindow!.cxReplay!;
   takeLooks(f.contentDocument?.getElementById("looks") ?? null);            // the game's live buttons: the plugin looks' too
-  f.contentWindow!.addEventListener("keydown", (e) => { if (e.code === "Space" || (sel && (e.code === "Delete" || e.code === "Backspace"))) onKey(e); }, true);   // (the game in focus: Space is still the replay's)
+  f.contentWindow!.addEventListener("keydown", (e) => { if (e.code === "Space" || e.code === "Slash" || (sel && (e.code === "Delete" || e.code === "Backspace"))) onKey(e); }, true);   // (the game in focus: Space is still the replay's)
   openState.P!.loop = EMBED && !VIEW; openState.P!.on((what) => sync(what));
   await openState.P!.load(openState.rec!);
   soundOn();                                                          // (the level now; the audio itself starts on the first click)

@@ -152,8 +152,8 @@ export function renderKeys() {
     const d = Object.assign(document.createElement("div"), { className: "key" + (k.fixed ? "" : " view") + (k === sel ? " sel" : "") });
     d.dataset.i = String(i); d.style.left = pc(k.t);
     const classic = k.look === "original" || k.look === "crystal";
-    d.innerHTML = `<i class="dia"></i>` + (k.rec ? "" : (ICONS[classic ? "vclassic" : "v" + k.mode] || "") + (classic ? "" : ICONS["a" + k.look] || "") + themeIcon(k) + CAMERA.replace("<svg", `<svg class="cam${k.fixed ? " on" : ""}"`) + (k.brain ? BRAIN.replace("<svg", `<svg class="brn ${k.brain}"`) : "")) + (isFirst(k) ? "" : `<b class="kx" title="Remove this keyframe">✕</b>`);
-    d.title = `${fmt(k.t)}: ${k.rec ? "the recorded camera" : `${VIEWS[k.mode!] ?? "view"}, ${LOOKS[k.look!] ?? "look"}${themeOf(k)}${k.fixed ? ", your camera" : ""}${k.brain ? `, brain ${{ hidden: "hidden", small: "small", big: "expanded" }[k.brain]}` : ""}`}`;
+    d.innerHTML = `<i class="dia"></i>` + (k.rec ? "" : (ICONS[classic ? "vclassic" : "v" + k.mode] || "") + (classic ? "" : ICONS["a" + k.look] || "") + themeIcon(k) + (k.split ? SPLIT.replace("<svg", '<svg class="spl"') : "") + CAMERA.replace("<svg", `<svg class="cam${k.fixed ? " on" : ""}"`) + (k.brain ? BRAIN.replace("<svg", `<svg class="brn ${k.brain}"`) : "")) + (isFirst(k) ? "" : `<b class="kx" title="Remove this keyframe">✕</b>`);
+    d.title = `${fmt(k.t)}: ${k.rec ? "the recorded camera" : `${VIEWS[k.mode!] ?? "view"}, ${LOOKS[k.look!] ?? "look"}${themeOf(k)}${k.split ? `, split with ${LOOKS[k.split.look] ?? k.split.look}` : ""}${k.fixed ? ", your camera" : ""}${k.brain ? `, brain ${{ hidden: "hidden", small: "small", big: "expanded" }[k.brain]}` : ""}`}`;
     lane.append(d);
   });
 }
@@ -170,3 +170,4 @@ function themeIcon(k: CamKey): string {
 }
 export const BRAIN = '<svg viewBox="0 0 20 20" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><path d="M5 3h10v1h2v2h1v7h-1v2h-3v2h-2v-2H5v-1H3v-2H2V6h1V4h2z" fill="#e88ab0"/><path d="M10 4h1v10h-1zM5 8h3v1H5zM13 7h3v1h-3zM6 11h2v1H6zM13 11h2v1h-2z" fill="#9a3e66"/></svg>';   // (a keyframe that sets the brain)
 export const CAMERA = '<svg viewBox="0 0 20 20" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 4h6v2h4v10H3V6h4z" fill="#ddd"/><path d="M8 8h4v1h1v4h-1v1H8v-1H7V9h1z" fill="#2a2a2a"/><path d="M9 10h2v2H9z" fill="#4ab0ff"/><path d="M4 7h2v1H4z" fill="#ffd84a"/></svg>';   // (a keyframe that holds your camera)
+export const SPLIT = '<svg viewBox="0 0 20 20" width="16" height="16" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 3h14v14H3z" fill="#ddd"/><path d="M4 4h12v12H4z" fill="#2a2a2a"/><path d="M15 5h1v1h-1zM14 6h2v1h-2zM13 7h3v1h-3zM12 8h4v1h-4zM11 9h5v1h-5zM10 10h6v1h-6zM9 11h7v1h-7zM8 12h8v1h-8zM7 13h9v1h-9zM6 14h10v1h-10zM5 15h11v1h-11z" fill="#8a8a8a"/><path d="M15 4h1v1h-1zM14 5h1v1h-1zM13 6h1v1h-1zM12 7h1v1h-1zM11 8h1v1h-1zM10 9h1v1h-1zM9 10h1v1h-1zM8 11h1v1h-1zM7 12h1v1h-1zM6 13h1v1h-1zM5 14h1v1h-1zM4 15h1v1h-1z" fill="#fff"/></svg>';   // (a keyframe that splits the screen)
